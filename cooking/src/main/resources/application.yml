@@ -1,0 +1,43 @@
+# server:
+#   port: 8081
+#   servlet:
+#     context-path: /abc
+
+spring:
+  application:
+    name: cooking
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/cooking_db
+    username: root
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      # ddl-auto: create
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    open-in-view: true #Test thoi ti tat di nhe mac dinh la true
+
+  # security:
+  #   user:
+  #     name: user
+  #     password: 123
+  #     roles: USER
+app:
+  jwt:
+    secret: thisismyscretkeyformyownmuahahahahahahahahahahahahahahaha
+    expiration: 3600000 # 1 hour in milliseconds
+    header: Authorization
+    prefix: Bearer
+  admin:
+    username: admin
+    password: admin12345
+    email: admine
+    dob: 1990-01-01
+    roles: ROLE_ADMIN
+  upload:
+    dir:
+      avatar: static_resource/public/upload/avatars

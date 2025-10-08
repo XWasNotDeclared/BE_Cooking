@@ -1,0 +1,44 @@
+package com.example.cooking.dto.request;
+
+
+import java.util.List;
+
+import com.example.cooking.common.enums.Scope;
+import com.example.cooking.dto.RecipeIngredientDTO;
+import com.example.cooking.dto.StepDTO;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class NewRecipeRequest {
+    @NotBlank
+    private String title;
+
+    private String description;
+
+    @NotNull
+    private Long servings;
+
+    @NotNull
+    private Long prepTime;
+
+    @NotNull
+    private Long cookTime;
+
+    @NotNull
+    private Scope scope;
+    
+    private String imageUrl;
+
+    @NotNull
+    private List<StepDTO> steps;
+
+    @NotNull
+    private List<RecipeIngredientDTO> recipeIngredients;
+
+    private List<Long> categoryIds;
+    private List<Long> tagIds;
+
+}
