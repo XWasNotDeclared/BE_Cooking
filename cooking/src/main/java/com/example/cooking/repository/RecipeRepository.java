@@ -9,17 +9,23 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.model.Recipe;
-import com.example.cooking.model.User;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
-    List<Recipe> findByUserId(Long userId);
+    // List<Recipe> findByUserId(Long userId);
 
-    List<Recipe> findByUser(User user);
+    // List<Recipe> findByUser(User user);
     
-    @EntityGraph(attributePaths = {"user", "steps", "recipeIngredients", "recipeIngredients.ingredient"})
+    @EntityGraph(attributePaths = {"user", "steps", "recipeIngredients", "recipeIngredients.ingredient","categories", "tags"})
     Optional<Recipe> findByIdAndScopeAndStatus(Long id, Scope scope, Status status);
 
-    @EntityGraph(attributePaths = {"user", "steps", "recipeIngredients", "recipeIngredients.ingredient"})
+    @EntityGraph(attributePaths = {"user", "steps", "recipeIngredients", "recipeIngredients.ingredient","categories", "tags"})
     Optional<Recipe> findById (Long id);
+
+    @EntityGraph(attributePaths = {"user", "categories", "tags"})
+    List<Recipe> findByUserId(Long userId);
+
+//    @EntityGraph(attributePaths = {"user", "categories", "tags"})
+//     List<Recipe> findByIdAndScopeAndStatus(Scope scope, Status status);
+
 }

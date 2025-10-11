@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
+import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.model.Category;
 import com.example.cooking.model.Recipe;
 import com.example.cooking.model.Tag;
@@ -22,7 +23,9 @@ import com.example.cooking.repository.TagRepository;
 
 @Mapper(componentModel = "spring", uses = {StepMapper.class, 
                                             UserMapper.class, 
-                                            RecipeIngredientMapper.class})
+                                            RecipeIngredientMapper.class,
+                                            TagMapper.class,
+                                            CategoryMapper.class})
 public abstract class RecipeMapper {
     @Autowired
     private LikeRepository likeRepository;
@@ -49,12 +52,31 @@ public abstract class RecipeMapper {
     public abstract RecipeDetailResponse toRecipeResponse(Recipe entity);
 
     public abstract List<RecipeDetailResponse> toRecipeResponseList(List<Recipe> entities);
+// 
+    @Mapping(target = "author", source = "user")
+    @Mapping(target = "categories", source = "categories")
+    @Mapping(target = "tags", source = "tags")
+    @Mapping(target = "likesCount", ignore = true)
+    public abstract RecipeSummaryDTO toSummaryDTO(Recipe entity);
+
+    public abstract List<RecipeSummaryDTO> toSummaryDTOList(List<Recipe> entities);
+
+
+
 
     @AfterMapping
     protected void addLikeCount(@MappingTarget RecipeDetailResponse response, Recipe entity) {
         Long count = likeRepository.countByRecipeId(entity.getId());
         response.setLikesCount(count);
     }
+
+    @AfterMapping
+    protected void addLikeCount(@MappingTarget RecipeSummaryDTO response, Recipe entity) {
+        //TODO: dang bi n+1 khi dung voi list
+        Long count = likeRepository.countByRecipeId(entity.getId());
+        response.setLikesCount(count);
+    }
+
 
         @AfterMapping
     protected void mapCategoriesAndTags(@MappingTarget Recipe recipe, NewRecipeRequest request) {

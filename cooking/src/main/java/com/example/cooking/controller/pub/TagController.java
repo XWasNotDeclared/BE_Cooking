@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.cooking.model.Tag;
+import com.example.cooking.common.ApiResponse;
+import com.example.cooking.dto.request.AddTagRequest;
+import com.example.cooking.dto.response.TagResponseDTO;
 import com.example.cooking.service.TagService;
 
 @RestController
@@ -23,34 +25,35 @@ public class TagController {
     @PostMapping
     //TODO: check role USER or ADMIN
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Tag> createTag(@RequestBody Tag tag) {
-        return new ResponseEntity<>(tagService.createTag(tag), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<TagResponseDTO>> createTag(@RequestBody AddTagRequest addTagRequest) {
+        return ApiResponse.ok(tagService.createTag(addTagRequest));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Tag> getTagById(@PathVariable Long id) {
-        return ResponseEntity.ok(tagService.getTagById(id));
+    public ResponseEntity<ApiResponse<TagResponseDTO>> getTagById(@PathVariable Long id) {
+        return ApiResponse.ok(tagService.getTagById(id));
     }
 
     @GetMapping("/slug/{slug}")
-    public ResponseEntity<Tag> getTagBySlug(@PathVariable String slug) {
-        return ResponseEntity.ok(tagService.getTagBySlug(slug));
+    public ResponseEntity<ApiResponse<TagResponseDTO>> getTagBySlug(@PathVariable String slug) {
+        return ApiResponse.ok(tagService.getTagBySlug(slug));
     }
 
     @GetMapping
-    public ResponseEntity<List<Tag>> getAllTags() {
+    public ResponseEntity<List<TagResponseDTO>> getAllTags() {
         return ResponseEntity.ok(tagService.getAllTags());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Tag> updateTag(@PathVariable Long id, @RequestBody Tag tag) {
-        return ResponseEntity.ok(tagService.updateTag(id, tag));
-    }
+    // @PutMapping("/{id}")
+    // @PreAuthorize("hasRole('ADMIN')") // chỉ admin được update
+    // public ResponseEntity<TagResponse> updateTag(@PathVariable Long id, @RequestBody Tag tag) {
+    //     return ResponseEntity.ok(tagService.updateTag(id, tag));
+    // }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')") // chỉ admin được xóa
-    public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> deleteTag(@PathVariable Long id) {
         tagService.deleteTag(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.ok("Đã thực hiện");
     }
 }

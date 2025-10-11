@@ -21,6 +21,7 @@ import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.mapper.RecipeMapper;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
+import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.IngredientService;
 import com.example.cooking.service.LikeService;
@@ -78,15 +79,14 @@ public class UserController {
     @PostMapping("/create/recipe")
     public ResponseEntity<ApiResponse<String>> createRecipe(@Valid @RequestBody NewRecipeRequest newRecipeRequest, 
      @AuthenticationPrincipal MyUserDetails currentUser) {
-        // System.out.println("HEREEEEEEEEEEEEEEEEEEEE"+ newRecipeRequest);
         Long recipeId = recipeService.addNewRecipe(currentUser, newRecipeRequest);
         //TODO: Doi kieu tra ve cho bao mat
         return ApiResponse.ok("Them thanh cong recipe voi id:" + recipeId);
     }
     @GetMapping("/list/recipes")
-    public ResponseEntity<ApiResponse<List<RecipeDetailResponse>>> getMyRecipes(@AuthenticationPrincipal MyUserDetails currentUser) {
+    public ResponseEntity<ApiResponse<List<RecipeSummaryDTO>>> getMyRecipes(@AuthenticationPrincipal MyUserDetails currentUser) {
         
-        List<RecipeDetailResponse> myRecipes = recipeMapper.toRecipeResponseList(recipeService.getMyRecipes(currentUser));
+        List<RecipeSummaryDTO> myRecipes = recipeService.getMyRecipes(currentUser);
         
         return ApiResponse.ok(myRecipes);
     }

@@ -40,6 +40,6 @@ public class RecipeDetailResponse {
     private Set<StepDTO> steps = new LinkedHashSet<>();
     private Set<IngredientInRecipeResponse> ingredients = new LinkedHashSet<>();
     private Set<CategoryResponseDTO> categories = new LinkedHashSet<>();
-    // private Set<TagResponseDTO> tags = new LinkedHashSet<>();
+    private Set<TagResponseDTO> tags = new LinkedHashSet<>();
     private Long likesCount;
 }

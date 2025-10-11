@@ -3,6 +3,8 @@ package com.example.cooking.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
+
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -36,7 +38,8 @@ public class Step {
     private String description;
 
     // List các URL ảnh
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
+    @BatchSize(size = 10)
     @CollectionTable(
         name = "step_images", 
         joinColumns = @JoinColumn(name = "step_id")

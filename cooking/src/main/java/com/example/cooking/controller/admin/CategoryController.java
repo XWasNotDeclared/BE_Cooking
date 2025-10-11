@@ -50,10 +50,10 @@ public class CategoryController {
     }
 
     @PostMapping("/addBatch")
-    public ResponseEntity<List<CategoryResponseDTO>> createCategories(
+    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> createCategories(
             @RequestBody List<CategoryRequestDTO> categories) {
         List<CategoryResponseDTO> createdCategories = categoryService.createCategories(categories);
-        return ResponseEntity.ok(createdCategories);
+        return ApiResponse.ok(createdCategories);
     }
 
 }

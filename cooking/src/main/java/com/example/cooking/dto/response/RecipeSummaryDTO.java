@@ -1,6 +1,8 @@
 package com.example.cooking.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
@@ -36,9 +38,12 @@ public class RecipeSummaryDTO {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+    
+    private Set<CategoryResponseDTO> categories = new LinkedHashSet<>();
+    private Set<TagResponseDTO> tags = new LinkedHashSet<>();
 
     private UserDTO author; // Lấy từ User (recipe.getUser().getUsername() hoặc getFullName())
 
-    
+    private Long likesCount;
 
 }

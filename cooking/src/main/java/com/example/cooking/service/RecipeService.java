@@ -10,6 +10,7 @@ import com.example.cooking.dto.mapper.RecipeMapper;
 // import com.example.cooking.dto.mapper.UserMapper;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
+import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Recipe;
 import com.example.cooking.model.User;
@@ -41,10 +42,11 @@ public class RecipeService {
     }
 
 
-    public List<Recipe> getMyRecipes(MyUserDetails currentUser) {
+    public List<RecipeSummaryDTO> getMyRecipes(MyUserDetails currentUser) {
         // User user = userMapper.toUser(currentUser);
         List<Recipe> recipes = recipeRepository.findByUserId(currentUser.getId());
-        return recipes;
+        List<RecipeSummaryDTO> recipeSummaries = recipeMapper.toSummaryDTOList(recipes);
+        return recipeSummaries;
     }
 
     public RecipeDetailResponse getRecipeByIdAndScopeAndStatus(Long id, Scope scope, Status status) {
