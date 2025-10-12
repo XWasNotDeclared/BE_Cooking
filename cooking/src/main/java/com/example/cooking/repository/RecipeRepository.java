@@ -3,6 +3,8 @@ package com.example.cooking.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -22,8 +24,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @EntityGraph(attributePaths = {"user", "steps", "recipeIngredients", "recipeIngredients.ingredient","categories", "tags"})
     Optional<Recipe> findById (Long id);
 
+    // @EntityGraph(attributePaths = {"user", "categories", "tags"})
+    // List<Recipe> findByUserId(Long userId);
+
     @EntityGraph(attributePaths = {"user", "categories", "tags"})
-    List<Recipe> findByUserId(Long userId);
+    //TODO: Page dang bi in memory apply do co qua nhieu join, can nhan sua sau
+    //TODO: HHH90003004: firstResult/maxResults specified with collection fetch; applying in memory
+    Page<Recipe> findByUserId(Long userId, Pageable pageable);
 
 //    @EntityGraph(attributePaths = {"user", "categories", "tags"})
 //     List<Recipe> findByIdAndScopeAndStatus(Scope scope, Status status);

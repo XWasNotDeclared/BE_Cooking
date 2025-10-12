@@ -70,13 +70,6 @@ public abstract class RecipeMapper {
         response.setLikesCount(count);
     }
 
-    @AfterMapping
-    protected void addLikeCount(@MappingTarget RecipeSummaryDTO response, Recipe entity) {
-        //TODO: dang bi n+1 khi dung voi list
-        Long count = likeRepository.countByRecipeId(entity.getId());
-        response.setLikesCount(count);
-    }
-
 
         @AfterMapping
     protected void mapCategoriesAndTags(@MappingTarget Recipe recipe, NewRecipeRequest request) {

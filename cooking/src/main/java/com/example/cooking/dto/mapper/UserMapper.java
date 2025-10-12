@@ -2,16 +2,24 @@ package com.example.cooking.dto.mapper;
 
 import java.util.List;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.example.cooking.config.AppProperties;
 import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.request.RegisterRequest;
 import com.example.cooking.model.User;
 import com.example.cooking.security.MyUserDetails;
 
 @Mapper(componentModel = "spring")
-public interface UserMapper {
+public abstract class UserMapper {
+
+        @Autowired
+    protected AppProperties appProperties;
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "roles", ignore = true)
@@ -20,7 +28,7 @@ public interface UserMapper {
     @Mapping(target = "recipes", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "avatarUrl", ignore = true)
-    User toUser (RegisterRequest entity);
+    public abstract User toUser (RegisterRequest entity);
 
     // @Mapping(target = "id", ignore = true)
     // @Mapping(target = "username", ignore = true)
@@ -33,11 +41,17 @@ public interface UserMapper {
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "username", source = "myUserName")
     @Mapping(target = "status", ignore = true)
-    User toUser (MyUserDetails entity);
+    public abstract User toUser (MyUserDetails entity);
 
 
-    UserDTO toUserDTO (User entity);
+    public abstract UserDTO toUserDTO (User entity);
 
-    List<UserDTO> toUserDTOList (List<User> entities);
-
+    public abstract List<UserDTO> toUserDTOList (List<User> entities);
+    
+    @AfterMapping
+    protected void addFullAvatarUrl(@MappingTarget UserDTO dto, User user) {
+        if (user.getAvatarUrl() != null) {
+            dto.setAvatarUrl(appProperties.getStaticBaseUrl() + user.getAvatarUrl());
+        }
+    }
 }

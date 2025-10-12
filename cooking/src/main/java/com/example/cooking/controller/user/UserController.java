@@ -1,6 +1,9 @@
 package com.example.cooking.controller.user;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 // import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 // import org.springframework.security.core.Authentication;
@@ -16,11 +19,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.cooking.common.ApiResponse;
+import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.IngredientDTO;
 import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.mapper.RecipeMapper;
 import com.example.cooking.dto.request.NewRecipeRequest;
-import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.IngredientService;
@@ -83,12 +86,17 @@ public class UserController {
         //TODO: Doi kieu tra ve cho bao mat
         return ApiResponse.ok("Them thanh cong recipe voi id:" + recipeId);
     }
-    @GetMapping("/list/recipes")
-    public ResponseEntity<ApiResponse<List<RecipeSummaryDTO>>> getMyRecipes(@AuthenticationPrincipal MyUserDetails currentUser) {
+    @GetMapping("/list/AllMyRecipes")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getMyRecipes(@AuthenticationPrincipal MyUserDetails currentUser,
+                                                                            @RequestParam(defaultValue = "0") int page,
+                                                                            @RequestParam(defaultValue = "10") int size) {
         
-        List<RecipeSummaryDTO> myRecipes = recipeService.getMyRecipes(currentUser);
+       Pageable pageable = PageRequest.of(page, size);
+
+        Page<RecipeSummaryDTO> myRecipes = recipeService.getMyRecipes(currentUser, pageable);
+        PageDTO<RecipeSummaryDTO> pageDTO = new PageDTO<>(myRecipes.getContent(), myRecipes.getTotalElements(), myRecipes.getTotalPages(), myRecipes.getNumber());
         
-        return ApiResponse.ok(myRecipes);
+        return ApiResponse.ok(pageDTO);
     }
 
     @PostMapping("/recipes/{id}/like")

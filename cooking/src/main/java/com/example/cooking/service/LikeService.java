@@ -23,7 +23,7 @@ public class LikeService {
     private final UserRepository userRepository;
 
     public void likeRecipe(Long userId, Long recipeId) {
-        //TODO: Like duoc ca recipe dang bi private và ca pending. DAY LA LOI
+        //TODO:LOI Like duoc ca recipe dang bi private và ca pending. DAY LA LOI
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException("User not found with id: " + userId));
         Recipe recipe = recipeRepository.findByIdAndScopeAndStatus(recipeId,Scope.PUBLIC, Status.APPROVED)

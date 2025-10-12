@@ -52,3 +52,4 @@ app:
   upload:
     dir:
       avatar: static_resource/public/upload/avatars
+  static-base-url: http://localhost:8080

@@ -1,5 +1,8 @@
 package com.example.cooking.repository;
 
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,4 +18,10 @@ public interface LikeRepository extends JpaRepository <Like, Long>{
     boolean existsByUserAndRecipe(User user, Recipe recipe);
 
     Integer deleteByUserIdAndRecipeId(Long userId, Long recipeId);
+
+    @Query("SELECT l.recipe.id AS recipeId, COUNT(l.id) AS count "
+         + "FROM Like l "
+         + "WHERE l.recipe.id IN :recipeIds "
+         + "GROUP BY l.recipe.id")
+    List<Object[]> countByRecipeIds(@Param("recipeIds") Set<Long> recipeIds);
 }
