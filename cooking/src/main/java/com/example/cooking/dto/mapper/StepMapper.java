@@ -1,26 +1,39 @@
 package com.example.cooking.dto.mapper;
-
-import com.example.cooking.dto.StepDTO;
-import com.example.cooking.model.Step;
 import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.example.cooking.config.AppProperties;
+import com.example.cooking.dto.response.StepResponseDTO;
+import com.example.cooking.model.Step;
 
 
 @Mapper(componentModel = "spring")
-public interface StepMapper {
+public abstract class StepMapper {
+    @Autowired
+    protected AppProperties appProperties;
 
-    // Map từ StepDTO sang Step (cần Recipe truyền vào)
-    @Mapping(target = "id", ignore = true)  // ID tự sinh
-    @Mapping(target = "recipe", ignore = true)
-    Step toEntity(StepDTO dto);
 
-    // // Map list StepDTO -> list Step
-    // List<Step> toEntityList(List<StepDTO> dtos);
+    @Mapping(target = "stepNumber", source = "stepNumber")
+    @Mapping(target = "description", source = "description")
+    @Mapping(target = "imageUrls", source = "imageUrls")
+    public abstract StepResponseDTO toDTO(Step step);
 
-    // // Map ngược lại (Step -> StepDTO)
-    // @Mapping(target = "stepNumber", source = "stepNumber")
-    // @Mapping(target = "description", source = "description")
-    // @Mapping(target = "imageUrls", source = "imageUrls")
-    // StepDTO toDTO(Step step);
+    @AfterMapping
+    protected void addFullImageURL(@MappingTarget StepResponseDTO response, Step entity) {
+        if (entity.getImageUrls() != null && !entity.getImageUrls().isEmpty()) {
+            for (int i = 0; i < entity.getImageUrls().size(); i++) {
+                String imageUrl = entity.getImageUrls().get(i);
+                if (imageUrl != null && !imageUrl.startsWith("http")) {
+                    entity.getImageUrls().set(i, appProperties.getStaticBaseUrl()+ imageUrl); // Thay "http://yourdomain.com/" bằng URL cơ sở thực tế của bạn
+                }
+            }
+            response.setImageUrls(entity.getImageUrls());
+        }
+    }
 
-    // List<StepDTO> toDTOList(List<Step> steps);
+    // // Map từ StepDTO sang Step (cần Recipe truyền vào)
+    // @Mapping(target = "id", ignore = true)  // ID tự sinh
+    // @Mapping(target = "recipe", ignore = true)
+    // Step toEntity(StepResponseDTO dto);
+
 }

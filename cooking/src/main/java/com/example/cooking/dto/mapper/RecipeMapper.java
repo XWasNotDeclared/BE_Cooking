@@ -11,6 +11,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.example.cooking.config.AppProperties;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
@@ -21,7 +22,8 @@ import com.example.cooking.repository.CategoryRepository;
 import com.example.cooking.repository.LikeRepository;
 import com.example.cooking.repository.TagRepository;
 
-@Mapper(componentModel = "spring", uses = {StepMapper.class, 
+@Mapper(componentModel = "spring", uses = {
+                                            StepMapper.class, 
                                             UserMapper.class, 
                                             RecipeIngredientMapper.class,
                                             TagMapper.class,
@@ -34,6 +36,8 @@ public abstract class RecipeMapper {
 
     @Autowired
     private TagRepository tagRepository;
+    @Autowired
+    protected AppProperties appProperties;
 
 
 
@@ -44,6 +48,8 @@ public abstract class RecipeMapper {
     @Mapping (target = "status", ignore = true)
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "imageUrl", ignore = true)
+    @Mapping(target = "steps", ignore = true) // Steps sẽ được map riêng
     public abstract Recipe toRecipe(NewRecipeRequest entity);
     
 
@@ -68,6 +74,9 @@ public abstract class RecipeMapper {
     protected void addLikeCount(@MappingTarget RecipeDetailResponse response, Recipe entity) {
         Long count = likeRepository.countByRecipeId(entity.getId());
         response.setLikesCount(count);
+        if (entity.getImageUrl() != null) {
+            response.setImageUrl(appProperties.getStaticBaseUrl() + entity.getImageUrl());
+        }
     }
 
 
@@ -85,4 +94,12 @@ public abstract class RecipeMapper {
             recipe.setTags(tags);
         }
     }
+
+    @AfterMapping
+    protected void addFullImageURL(@MappingTarget RecipeSummaryDTO response, Recipe entity) {
+        if (entity.getImageUrl() != null) {
+            response.setImageUrl(appProperties.getStaticBaseUrl() + entity.getImageUrl());
+        }
+    }
+
 }

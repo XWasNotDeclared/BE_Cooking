@@ -9,16 +9,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.mapper.RecipeMapper;
+import com.example.cooking.dto.mapper.StepMapper;
 // import com.example.cooking.dto.mapper.UserMapper;
 import com.example.cooking.dto.request.NewRecipeRequest;
+import com.example.cooking.dto.request.StepRequestDTO;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Recipe;
+import com.example.cooking.model.Step;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.LikeRepository;
 import com.example.cooking.repository.RecipeRepository;
@@ -34,21 +38,44 @@ public class RecipeService {
     // private final UserMapper userMapper;
     private final RecipeMapper recipeMapper;
     private final LikeRepository likeRepository;
-    
+    private final UploadFileService uploadFileService;
+    // private final StepMapper  stepMapper;
+
     @Transactional
-    public Long addNewRecipe (MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
-        // User user = userMapper.toUser(currentUser);
+    public Long addNewRecipe(MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
         User user = new User();
         user.setId(currentUser.getId());
         Recipe recipe = recipeMapper.toRecipe(newRecipeRequest);
+        // thieu anh chinh va steps
+        if (!(newRecipeRequest.getImage() == null || newRecipeRequest.getImage().isEmpty())) {
+            String mainImageUrl = uploadFileService.saveFile(newRecipeRequest.getImage());
+            recipe.setImageUrl(mainImageUrl);
+        } else
+            recipe.setImageUrl("Khong co anh");
+        
+        List<StepRequestDTO> stepDTOs = newRecipeRequest.getSteps();
+        for (int i = 0; i < stepDTOs.size(); i++) {
+            StepRequestDTO stepRequestDTO = stepDTOs.get(i);
+            // Chuyển đổi StepRequestDTO thành Step entity
+            Step step = new Step();
+            step.setDescription(stepRequestDTO.getDescription());
+            step.setStepNumber(i + 1); // Đặt số thứ tự bước (bắt đầu từ 1)
+            step.setRecipe(recipe); // Thiết lập mối quan hệ với Recipe
+            if (!(stepRequestDTO.getImages() == null || stepRequestDTO.getImages().isEmpty())) {
+                for (MultipartFile imageFile : stepRequestDTO.getImages()) {
+                    String imageUrl = uploadFileService.saveFile(imageFile);
+                    step.getImageUrls().add(imageUrl);
+                }
+            }
+            recipe.getSteps().add(step); // Thêm bước vào danh sách các bước của công thức
+        }
         recipe.setStatus(Status.PENDING);
         recipe.setUser(user);
-        recipe.getSteps().forEach(step -> step.setRecipe(recipe));
+        // recipe.getSteps().forEach(step -> step.setRecipe(recipe));
         recipe.getRecipeIngredients().forEach(ri -> ri.setRecipe(recipe));
         recipeRepository.save(recipe);
         return recipe.getId();
     }
-
 
     public Page<RecipeSummaryDTO> getMyRecipes(MyUserDetails currentUser, Pageable pageable) {
         // User user = userMapper.toUser(currentUser);
@@ -57,14 +84,14 @@ public class RecipeService {
         Set<Long> recipeIds = recipePage.getContent().stream().map(Recipe::getId).collect(Collectors.toSet());
         List<Object[]> countResults = likeRepository.countByRecipeIds(recipeIds);
         Map<Long, Long> likesCountMap = countResults.stream()
-                    .collect(Collectors.toMap(
+                .collect(Collectors.toMap(
                         row -> (Long) row[0], // recipeId
-                        row -> (Long) row[1]  // count
-                    ));
+                        row -> (Long) row[1] // count
+                ));
 
         List<RecipeSummaryDTO> recipeSummaries = recipeMapper.toSummaryDTOList(recipePage.getContent());
 
-        //Set likes count for each recipe summary
+        // Set likes count for each recipe summary
         recipeSummaries.forEach(summary -> {
             Long likesCount = likesCountMap.getOrDefault(summary.getId(), 0L);
             summary.setLikesCount(likesCount);
@@ -73,14 +100,16 @@ public class RecipeService {
     }
 
     public RecipeDetailResponse getRecipeByIdAndScopeAndStatus(Long id, Scope scope, Status status) {
-        Recipe recipe = recipeRepository.findByIdAndScopeAndStatus(id, scope, status).orElseThrow(() -> new CustomException("You don't have permit to see that recipe or Recipe not found with id: " + id));
+        Recipe recipe = recipeRepository.findByIdAndScopeAndStatus(id, scope, status)
+                .orElseThrow(() -> new CustomException(
+                        "You don't have permit to see that recipe or Recipe not found with id: " + id));
         return recipeMapper.toRecipeResponse(recipe);
     }
 
-    public Recipe getRecipeById(Long id){
-        Recipe recipe = recipeRepository.findById(id).orElseThrow(()-> new CustomException("Khong tim thay recipe voi id: " + id));
+    public Recipe getRecipeById(Long id) {
+        Recipe recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> new CustomException("Khong tim thay recipe voi id: " + id));
         return recipe;
     }
-
 
 }

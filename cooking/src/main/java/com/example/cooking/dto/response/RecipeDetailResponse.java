@@ -6,7 +6,6 @@ import java.util.Set;
 
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
-import com.example.cooking.dto.StepDTO;
 import com.example.cooking.dto.UserDTO;
 
 import lombok.Data;
@@ -37,7 +36,7 @@ public class RecipeDetailResponse {
     private Scope scope;
     private Status status;
     private UserDTO user;
-    private Set<StepDTO> steps = new LinkedHashSet<>();
+    private Set<StepResponseDTO> steps = new LinkedHashSet<>();
     private Set<IngredientInRecipeResponse> ingredients = new LinkedHashSet<>();
     private Set<CategoryResponseDTO> categories = new LinkedHashSet<>();
     private Set<TagResponseDTO> tags = new LinkedHashSet<>();
