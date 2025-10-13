@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 // import org.springframework.security.core.context.SecurityContextHolder;
 // import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -79,8 +80,16 @@ public class UserController {
         return ApiResponse.ok(user);
     }
 
-    @PostMapping("/create/recipe")
-    public ResponseEntity<ApiResponse<String>> createRecipe(@Valid @RequestBody NewRecipeRequest newRecipeRequest, 
+    // @PostMapping("/create/recipe")
+    // public ResponseEntity<ApiResponse<String>> createRecipe(@Valid @RequestBody NewRecipeRequest newRecipeRequest, 
+    //  @AuthenticationPrincipal MyUserDetails currentUser) {
+    //     Long recipeId = recipeService.addNewRecipe(currentUser, newRecipeRequest);
+    //     //TODO: Doi kieu tra ve cho bao mat
+    //     return ApiResponse.ok("Them thanh cong recipe voi id:" + recipeId);
+    // }
+    @PostMapping(value = "/create/recipe", consumes = {"multipart/form-data"})
+    public ResponseEntity<ApiResponse<String>> createRecipe(
+        @Valid @ModelAttribute NewRecipeRequest newRecipeRequest, 
      @AuthenticationPrincipal MyUserDetails currentUser) {
         Long recipeId = recipeService.addNewRecipe(currentUser, newRecipeRequest);
         //TODO: Doi kieu tra ve cho bao mat

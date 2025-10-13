@@ -6,6 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.example.cooking.dto.RecipeIngredientDTO;
+import com.example.cooking.dto.request.RecipeIngredientRequestDTO;
 import com.example.cooking.dto.response.IngredientInRecipeResponse;
 import com.example.cooking.model.Ingredient;
 import com.example.cooking.model.RecipeIngredient;
@@ -17,6 +18,12 @@ public interface RecipeIngredientMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "recipe", ignore = true)
     RecipeIngredient toEntity(RecipeIngredientDTO dto);
+
+
+    @Mapping(target = "ingredient", source = "ingredientId")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "recipe", ignore = true)
+    RecipeIngredient toEntity(RecipeIngredientRequestDTO dto);
 
     List<RecipeIngredient> toEntityList(List<RecipeIngredientDTO> dtos);
 

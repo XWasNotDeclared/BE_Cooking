@@ -3,9 +3,9 @@ package com.example.cooking.dto.request;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.example.cooking.common.enums.Scope;
-import com.example.cooking.dto.RecipeIngredientDTO;
-import com.example.cooking.dto.StepDTO;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -30,13 +30,13 @@ public class NewRecipeRequest {
     @NotNull
     private Scope scope;
     
-    private String imageUrl;
+    private MultipartFile image;
 
     @NotNull
-    private List<StepDTO> steps;
+    private List<StepRequestDTO> steps;
 
     @NotNull
-    private List<RecipeIngredientDTO> recipeIngredients;
+    private List<RecipeIngredientRequestDTO> recipeIngredients;
 
     private List<Long> categoryIds;
     private List<Long> tagIds;
