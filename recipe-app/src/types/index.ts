@@ -40,9 +40,9 @@ export interface RecipeSummaryDTO {
   status: 'APPROVED' | 'PENDING' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
-  categories: CategoryResponseDTO[];
-  tags: TagResponseDTO[];
-  author: UserDTO;
+  categories: CategoryDTO[];
+  tags: TagDTO[];
+  user: UserDTO;
   likesCount: number;
 }
 
@@ -54,14 +54,15 @@ export interface PageDTO<T> {
 }
 
 // Category
-export interface CategoryResponseDTO {
+export interface CategoryDTO {
+  id: number;
   name: string;
   slug: string;
   description?: string;
 }
 
 // Tag
-export interface TagResponseDTO {
+export interface TagDTO {
   name: string;
   slug: string;
 }
@@ -98,4 +99,38 @@ export interface RecipeIngredientRequestDTO {
 export interface IngredientDTO {
   name: string;
   status: 'APPROVED' | 'PENDING' | 'REJECTED';
+}
+/////////////
+// Recipe Detail
+export interface RecipeDetailDTO {
+  id: number;
+  title: string;
+  description?: string;
+  servings: number;
+  prepTime: number;
+  cookTime: number;
+  createdAt: string;
+  updatedAt: string;
+  imageUrl?: string;
+  scope: 'PUBLIC' | 'PRIVATE' | 'DRAFT';
+  status: 'APPROVED' | 'PENDING' | 'REJECTED';
+  user: UserDTO;
+  steps: StepDTO[];
+  ingredients: IngredientDetailDTO[];
+  categories: CategoryDTO[];
+  tags: TagDTO[];
+  likesCount: number;
+}
+
+export interface StepDTO {
+  stepNumber: number;
+  description: string;
+  imageUrls: string[];
+}
+
+export interface IngredientDetailDTO {
+  displayOrder: number;
+  quantity: number;
+  unit: string;
+  displayName: string;
 }

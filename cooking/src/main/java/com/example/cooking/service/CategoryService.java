@@ -1,15 +1,19 @@
 package com.example.cooking.service;
 
+import com.example.cooking.dto.CategoryDTO;
+import com.example.cooking.dto.IngredientDTO;
 import com.example.cooking.dto.mapper.CategoryMapper;
 import com.example.cooking.dto.request.CategoryRequestDTO;
-import com.example.cooking.dto.response.CategoryResponseDTO;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Category;
+import com.example.cooking.model.Tag;
 import com.example.cooking.repository.CategoryRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,22 +27,22 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
 
-    public List<CategoryResponseDTO> getAllCategories() {
-        List<CategoryResponseDTO> categoryResponseDTOs = categoryMapper.toDTO(categoryRepository.findAll());
+    public List<CategoryDTO> getAllCategories() {
+        List<CategoryDTO> categoryResponseDTOs = categoryMapper.toDTO(categoryRepository.findAll());
         return categoryResponseDTOs;
     }
 
-    public CategoryResponseDTO getCategoryById(Long id) {
-        CategoryResponseDTO categoryResponseDTO = categoryMapper.toDTO(categoryRepository.findById(id).orElseThrow(()-> new CustomException("Category not found")));
+    public CategoryDTO getCategoryById(Long id) {
+        CategoryDTO categoryResponseDTO = categoryMapper.toDTO(categoryRepository.findById(id).orElseThrow(()-> new CustomException("Category not found")));
         return categoryResponseDTO;
     }
 
-    public CategoryResponseDTO getCategoryBySlug(String slug) {
-        CategoryResponseDTO categoryResponseDTO = categoryMapper.toDTO(categoryRepository.findBySlug(slug).orElseThrow(()-> new CustomException("Category not found")));
+    public CategoryDTO getCategoryBySlug(String slug) {
+        CategoryDTO categoryResponseDTO = categoryMapper.toDTO(categoryRepository.findBySlug(slug).orElseThrow(()-> new CustomException("Category not found")));
         return categoryResponseDTO;
     }
 
-    public CategoryResponseDTO createCategory(CategoryRequestDTO requestDTO) {
+    public CategoryDTO createCategory(CategoryRequestDTO requestDTO) {
         Category category = categoryMapper.toEntity(requestDTO);
         if (categoryRepository.existsByName(category.getName())) {
             throw new CustomException("Category with this name already exists");
@@ -46,7 +50,7 @@ public class CategoryService {
         return categoryMapper.toDTO(categoryRepository.save(category));
     }
 
-    public CategoryResponseDTO updateCategory(Long id, CategoryRequestDTO updatedCategoryRequestDTO) {
+    public CategoryDTO updateCategory(Long id, CategoryRequestDTO updatedCategoryRequestDTO) {
 
         Category updatedCategory = categoryMapper.toEntity(updatedCategoryRequestDTO);
 
@@ -58,12 +62,14 @@ public class CategoryService {
         }).orElseThrow(() -> new CustomException("Category not found")));
     }
 
-    public void deleteCategory(Long id) {
-        categoryRepository.deleteById(id);
-    }
-
     @Transactional
-    public List<CategoryResponseDTO> createCategories(List<CategoryRequestDTO> categoriesRequestDTOs) {
+    public void deleteCategory(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CustomException("Category not found with id " + id));
+        categoryRepository.delete(category);
+    }
+    @Transactional
+    public List<CategoryDTO> createCategories(List<CategoryRequestDTO> categoriesRequestDTOs) {
         List<Category> categories = categoryMapper.toEntity(categoriesRequestDTOs);
         // Lấy tất cả tên category trong request
         Set<String> setRequest = categories.stream()
@@ -86,4 +92,11 @@ public class CategoryService {
         return categoryMapper.toDTO(categoryRepository.saveAll(categories));
     }
 
+    /**
+     * Autocomplete ingredients by keyword, return top 10 results
+     */
+    public List<CategoryDTO> autocomplete(String keyword) {
+        Pageable topTen = PageRequest.of(0, 10);
+        return categoryRepository.searchToDTO(keyword, topTen);
+    }
 }

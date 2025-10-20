@@ -1,22 +1,19 @@
 package com.example.cooking.controller.user;
 
-
 import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.request.CommentRequestDTO;
-import com.example.cooking.dto.response.CommentResponseDTO;
+import com.example.cooking.dto.CommentDTO;
 import com.example.cooking.security.MyUserDetails;
+import com.example.cooking.service.CommentLikeService;
 import com.example.cooking.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -24,43 +21,73 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
+    private final CommentLikeService commentLikeService;
 
     @PostMapping("/recipes/{recipeId}/comments")
-    public ResponseEntity<ApiResponse<CommentResponseDTO>> createComment(
+    public ResponseEntity<ApiResponse<CommentDTO>> createComment(
             @PathVariable Long recipeId,
             @Valid @RequestBody CommentRequestDTO dto,
             @AuthenticationPrincipal MyUserDetails currentUser) {
-        CommentResponseDTO response = commentService.createComment(recipeId, dto, currentUser);
+        CommentDTO response = commentService.createCommentOnRecipe(recipeId, dto, currentUser);
+        return ApiResponse.ok(response);
+    }
+
+    @PostMapping("/reply/{parentCommentId}")
+    public ResponseEntity<ApiResponse<CommentDTO>> createReply(
+            @PathVariable Long parentCommentId,
+            @Valid @RequestBody CommentRequestDTO dto,
+            @AuthenticationPrincipal MyUserDetails currentUser) {
+        CommentDTO response = commentService.createCommentReply(parentCommentId, dto, currentUser);
         return ApiResponse.ok(response);
     }
 
     @GetMapping("/recipes/{recipeId}/comments")
-    public ResponseEntity<ApiResponse<PageDTO<CommentResponseDTO>>> getCommentsByRecipe(
+    public ResponseEntity<ApiResponse<PageDTO<CommentDTO>>> getCommentsByRecipe(
+            @AuthenticationPrincipal MyUserDetails currentUser,
             @PathVariable Long recipeId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<CommentResponseDTO> comments = commentService.getCommentsByRecipe(recipeId, page, size);
-        PageDTO<CommentResponseDTO> pageDTOs = new PageDTO<>(
-                comments.getContent(),
-                comments.getTotalElements(),
-                comments.getTotalPages(),
-                comments.getNumber()
-        );
-        return ApiResponse.ok(pageDTOs);
+        PageDTO<CommentDTO> comments = commentService.getCommentsByRecipe(currentUser,recipeId, page, size);
+        return ApiResponse.ok(comments);
     }
 
-    //TODO: xem xet sau
-    // @PutMapping("/comments/{commentId}")
-    // public ResponseEntity<CommentResponseDTO> updateComment(
-    //         @PathVariable Long commentId,
-    //         @Valid @RequestBody CommentRequestDTO dto) {
-    //     CommentResponseDTO response = commentService.updateComment(commentId, dto);
-    //     return ResponseEntity.ok(response);
-    // }
+    @GetMapping("/comment/{parentCommentId}/childcomments")
+    public ResponseEntity<ApiResponse<PageDTO<CommentDTO>>> getChildComments(
+            @AuthenticationPrincipal MyUserDetails currentUser,
+            @PathVariable Long parentCommentId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PageDTO<CommentDTO> comments = commentService.getChildCommentsByParentCommentId(currentUser,parentCommentId, page, size);
+        
+        return ApiResponse.ok(comments);
+    }
 
-    // @DeleteMapping("/comments/{commentId}")
-    // public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
-    //     commentService.deleteComment(commentId);
-    //     return ResponseEntity.noContent().build();
-    // }
+    @PostMapping("/comment/{commentId}/like")
+    public ResponseEntity<ApiResponse<String>> likeComment(@PathVariable("commentId") Long commentId,
+            @AuthenticationPrincipal MyUserDetails currentUser) {
+        commentLikeService.likeComment(currentUser, commentId);
+        return ApiResponse.ok("Da like comment " + commentId);
+    }
+
+    @PostMapping("/comment/{commentId}/unlike")
+    public ResponseEntity<ApiResponse<String>> unLikeComment(@PathVariable("commentId") Long commentId,
+            @AuthenticationPrincipal MyUserDetails currentUser) {
+        commentLikeService.unlikeComment(currentUser, commentId);
+        return ApiResponse.ok("Da unlike comment " + commentId);
+    }
+
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<ApiResponse<CommentDTO>> updateComment(
+            @PathVariable Long commentId,
+            @Valid @RequestBody CommentRequestDTO dto,
+            @AuthenticationPrincipal MyUserDetails currentUser) {
+        CommentDTO response = commentService.updateComment(commentId, dto, currentUser);
+        return ApiResponse.ok(response);
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<ApiResponse<String>> deleteComment(@PathVariable Long commentId, @AuthenticationPrincipal MyUserDetails currentUser) {
+        commentService.deleteComment(commentId, currentUser);
+        return ApiResponse.ok("Da xoa comment " + commentId);
+    }
 }

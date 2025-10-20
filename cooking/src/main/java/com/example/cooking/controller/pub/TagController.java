@@ -1,15 +1,13 @@
 package com.example.cooking.controller.pub;
 
 import java.util.List;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.cooking.common.ApiResponse;
+import com.example.cooking.dto.TagDTO;
 import com.example.cooking.dto.request.AddTagRequest;
-import com.example.cooking.dto.response.TagResponseDTO;
 import com.example.cooking.service.TagService;
 
 @RestController
@@ -25,22 +23,22 @@ public class TagController {
     @PostMapping
     //TODO: check role USER or ADMIN
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<TagResponseDTO>> createTag(@RequestBody AddTagRequest addTagRequest) {
-        return ApiResponse.ok(tagService.createTag(addTagRequest));
+    public ResponseEntity<ApiResponse<TagDTO>> createTag(@RequestParam String tagName) {
+        return ApiResponse.ok(tagService.createTag(tagName));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TagResponseDTO>> getTagById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<TagDTO>> getTagById(@PathVariable Long id) {
         return ApiResponse.ok(tagService.getTagById(id));
     }
 
     @GetMapping("/slug/{slug}")
-    public ResponseEntity<ApiResponse<TagResponseDTO>> getTagBySlug(@PathVariable String slug) {
+    public ResponseEntity<ApiResponse<TagDTO>> getTagBySlug(@PathVariable String slug) {
         return ApiResponse.ok(tagService.getTagBySlug(slug));
     }
 
     @GetMapping
-    public ResponseEntity<List<TagResponseDTO>> getAllTags() {
+    public ResponseEntity<List<TagDTO>> getAllTags() {
         return ResponseEntity.ok(tagService.getAllTags());
     }
 

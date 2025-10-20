@@ -66,6 +66,7 @@ public class AdminController {
 
     @GetMapping("/recipe/all")
     public ResponseEntity<ApiResponse<List<RecipeDetailResponse>>> getAllRecipes(){
+        //TODO: sửa lại, dùng enrich
         return ApiResponse.ok(recipeMapper.toRecipeResponseList(adminService.getAllRecipes()));
     }
 

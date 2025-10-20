@@ -19,13 +19,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/public")
 public class PublicController {
-    private final RecipeService recipeService;
+    // private final RecipeService recipeService;
     // private final IngredientService ingredientService;
-    @GetMapping("recipes/{id}")
-    public ResponseEntity<ApiResponse<RecipeDetailResponse>> getRecipeById(@PathVariable Long id) {
-        RecipeDetailResponse recipe = recipeService.getRecipeByIdAndScopeAndStatus(id, Scope.PUBLIC, Status.APPROVED);
-        return ApiResponse.ok(recipe);
-    }
+    // @GetMapping("recipes/{id}")
+    // public ResponseEntity<ApiResponse<RecipeDetailResponse>> getRecipeById(@PathVariable Long id) {
+    //     RecipeDetailResponse recipe = recipeService.getRecipeByIdAndScopeAndStatus(id, Scope.PUBLIC, Status.APPROVED);
+    //     return ApiResponse.ok(recipe);
+    // }
 
 
 }

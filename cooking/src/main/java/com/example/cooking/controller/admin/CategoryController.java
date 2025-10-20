@@ -1,8 +1,8 @@
 package com.example.cooking.controller.admin;
 
 import com.example.cooking.common.ApiResponse;
+import com.example.cooking.dto.CategoryDTO;
 import com.example.cooking.dto.request.CategoryRequestDTO;
-import com.example.cooking.dto.response.CategoryResponseDTO;
 import com.example.cooking.service.CategoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,39 +20,39 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getAllCategories() {
+    public ResponseEntity<ApiResponse<List<CategoryDTO>>> getAllCategories() {
         return ApiResponse.ok(categoryService.getAllCategories());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CategoryResponseDTO>> getCategoryById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<CategoryDTO>> getCategoryById(@PathVariable Long id) {
         return ApiResponse.ok(categoryService.getCategoryById(id));
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<CategoryResponseDTO>> createCategory(@RequestBody CategoryRequestDTO category) {
-        CategoryResponseDTO created = categoryService.createCategory(category);
+    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@RequestBody CategoryRequestDTO category) {
+        CategoryDTO created = categoryService.createCategory(category);
         return ApiResponse.ok(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<CategoryResponseDTO>> updateCategory(@PathVariable Long id,
+    public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(@PathVariable Long id,
             @RequestBody CategoryRequestDTO category) {
-        CategoryResponseDTO updated = categoryService.updateCategory(id, category);
+        CategoryDTO updated = categoryService.updateCategory(id, category);
         return ApiResponse.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    // TODO: khong biet xoa duoc khong
     public ResponseEntity<ApiResponse<String>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
-        return ApiResponse.ok("Delete category done");
+        return ApiResponse.ok("Đã thực hiện");
     }
+    
 
     @PostMapping("/addBatch")
-    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> createCategories(
+    public ResponseEntity<ApiResponse<List<CategoryDTO>>> createCategories(
             @RequestBody List<CategoryRequestDTO> categories) {
-        List<CategoryResponseDTO> createdCategories = categoryService.createCategories(categories);
+        List<CategoryDTO> createdCategories = categoryService.createCategories(categories);
         return ApiResponse.ok(createdCategories);
     }
 

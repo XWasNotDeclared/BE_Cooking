@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import type { RecipeSummaryDTO } from '../types';
 
 interface RecipeCardProps {
@@ -5,6 +6,8 @@ interface RecipeCardProps {
 }
 
 export default function RecipeCard({ recipe }: RecipeCardProps) {
+  const navigate = useNavigate();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'APPROVED': return '#28a745';
@@ -25,6 +28,10 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
 
   const DEFAULT_AVATAR = '/default-avatar.png';
 
+  const handleClick = () => {
+    navigate(`/recipe/${recipe.id}`);
+  };
+
   return (
     <div
       style={{
@@ -35,6 +42,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
         transition: 'transform 0.2s',
         cursor: 'pointer'
       }}
+      onClick={handleClick}
       onMouseOver={(e) => (e.currentTarget.style.transform = 'translateY(-4px)')}
       onMouseOut={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
     >
@@ -54,7 +62,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
       {/* Nội dung thẻ */}
       <div style={{ padding: '1rem' }}>
         {/* Thông tin tác giả */}
-        {recipe.author && (
+        {recipe.user && (
           <div
             style={{
               display: 'flex',
@@ -64,8 +72,8 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
             }}
           >
             <img
-              src={recipe.author.avatarUrl || DEFAULT_AVATAR}
-              alt={recipe.author.username}
+              src={recipe.user.avatarUrl || DEFAULT_AVATAR}
+              alt={recipe.user.username}
               style={{
                 width: '36px',
                 height: '36px',
@@ -75,7 +83,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
             />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={{ fontSize: '14px', color: '#333', fontWeight: 500 }}>
-                {recipe.author.username}
+                {recipe.user.username}
               </span>
               <span style={{ fontSize: '12px', color: '#888' }}>
                 {new Date(recipe.createdAt).toLocaleDateString('vi-VN')}

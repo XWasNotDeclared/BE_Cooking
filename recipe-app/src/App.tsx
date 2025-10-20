@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import CreateRecipe from './pages/CreateRecipe';
 import { isAuthenticated } from './utils/auth';
+import RecipeDetail from './components/RecipeDetail';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: ReactElement }) {
@@ -44,6 +45,7 @@ function App() {
           } 
         />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/recipe/:id" element={<RecipeDetail />} />
       </Routes>
     </BrowserRouter>
   );

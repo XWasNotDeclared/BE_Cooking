@@ -59,10 +59,14 @@ public abstract class RecipeMapper {
 
     public abstract List<RecipeDetailResponse> toRecipeResponseList(List<Recipe> entities);
 // 
-    @Mapping(target = "author", source = "user")
-    @Mapping(target = "categories", source = "categories")
-    @Mapping(target = "tags", source = "tags")
-    @Mapping(target = "likesCount", ignore = true)
+    @Mapping(target = "user", source = "user")
+    @Mapping(target = "categories", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "likeCount", ignore = true)
+    @Mapping(target = "commentCount", ignore = true)
+    @Mapping(target = "likedByCurrentUser", ignore = true)
+    @Mapping(target = "saveCount", ignore = true)
+    @Mapping(target = "savedByCurrentUser", ignore = true)
     public abstract RecipeSummaryDTO toSummaryDTO(Recipe entity);
 
     public abstract List<RecipeSummaryDTO> toSummaryDTOList(List<Recipe> entities);

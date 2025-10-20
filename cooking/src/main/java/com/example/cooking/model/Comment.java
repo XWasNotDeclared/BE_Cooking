@@ -1,10 +1,10 @@
 package com.example.cooking.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
-
-import org.hibernate.annotations.BatchSize;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,7 +25,8 @@ public class Comment {
     @Column(name = "comment_id")
     private Long id;
 
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @Lob
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,6 +53,9 @@ public class Comment {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CommentLike> likes = new ArrayList<>(); 
 
     @PrePersist
     protected void onCreate() {

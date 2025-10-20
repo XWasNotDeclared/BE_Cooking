@@ -5,6 +5,7 @@ import type {
   UserDTO, 
   RecipeSummaryDTO, 
   PageDTO,
+  RecipeDetailDTO,
   NewRecipeRequest,
   IngredientDTO 
 } from '../types';
@@ -91,6 +92,14 @@ export const userAPI = {
     );
     return response.data.data;
   },
+
+  getRecipeDetail: async (recipeId: number): Promise<RecipeDetailDTO> => {
+    const response = await apiClient.get<ApiResponse<RecipeDetailDTO>>(
+      `/user/recipes/${recipeId}`
+    );
+    return response.data.data;
+  },
+
 };
 
 export default apiClient;
