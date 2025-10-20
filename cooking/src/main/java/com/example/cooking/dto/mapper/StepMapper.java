@@ -3,7 +3,7 @@ import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.cooking.config.AppProperties;
-import com.example.cooking.dto.response.StepResponseDTO;
+import com.example.cooking.dto.StepDTO;
 import com.example.cooking.model.Step;
 
 
@@ -16,15 +16,15 @@ public abstract class StepMapper {
     @Mapping(target = "stepNumber", source = "stepNumber")
     @Mapping(target = "description", source = "description")
     @Mapping(target = "imageUrls", source = "imageUrls")
-    public abstract StepResponseDTO toDTO(Step step);
+    public abstract StepDTO toDTO(Step step);
 
     @AfterMapping
-    protected void addFullImageURL(@MappingTarget StepResponseDTO response, Step entity) {
+    protected void addFullImageURL(@MappingTarget StepDTO response, Step entity) {
         if (entity.getImageUrls() != null && !entity.getImageUrls().isEmpty()) {
             for (int i = 0; i < entity.getImageUrls().size(); i++) {
                 String imageUrl = entity.getImageUrls().get(i);
                 if (imageUrl != null && !imageUrl.startsWith("http")) {
-                    entity.getImageUrls().set(i, appProperties.getStaticBaseUrl()+ imageUrl); // Thay "http://yourdomain.com/" bằng URL cơ sở thực tế của bạn
+                    entity.getImageUrls().set(i, appProperties.getStaticBaseUrl()+ imageUrl); 
                 }
             }
             response.setImageUrls(entity.getImageUrls());

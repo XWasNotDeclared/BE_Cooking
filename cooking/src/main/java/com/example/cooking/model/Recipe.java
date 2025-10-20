@@ -45,7 +45,7 @@ public class Recipe {
     @Column(name = "title", nullable=false)
     private String title;
 
-    @Column(name= "description", nullable = true)
+    @Column(name= "description", columnDefinition = "TEXT", nullable = true)
     @Lob
     private String description;
 

@@ -5,8 +5,8 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import com.example.cooking.dto.CategoryDTO;
 import com.example.cooking.dto.request.CategoryRequestDTO;
-import com.example.cooking.dto.response.CategoryResponseDTO;
 import com.example.cooking.model.Category;
 
 @Mapper(componentModel = "spring")
@@ -17,6 +17,6 @@ public interface CategoryMapper {
     Category toEntity(CategoryRequestDTO dto);
     List<Category> toEntity(List<CategoryRequestDTO> dtos);
 
-    CategoryResponseDTO toDTO(Category category);
-    List<CategoryResponseDTO> toDTO(List<Category> categories);
+    CategoryDTO toDTO(Category category);
+    List<CategoryDTO> toDTO(List<Category> categories);
 }

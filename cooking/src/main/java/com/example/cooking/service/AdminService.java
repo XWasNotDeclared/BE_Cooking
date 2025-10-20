@@ -27,7 +27,7 @@ public class AdminService {
     }
 
     public void setRecipeStatus(Long id, Status status) {
-        Recipe recipe = recipeRepository.findById(id).orElseThrow(() -> new CustomException("Recipe not found with id: " + id));
+        Recipe recipe = recipeRepository.findSimpleById(id).orElseThrow(() -> new CustomException("Recipe not found with id: " + id));
         recipe.setStatus(status);
         recipeRepository.save(recipe);
     }

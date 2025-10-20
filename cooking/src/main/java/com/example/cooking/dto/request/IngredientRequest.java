@@ -13,9 +13,6 @@ public class IngredientRequest {
     @NotBlank
     private String name;
 
-    // @NotBlank
-    // private String unit;
-
     @NotNull
     private Status status;
 }

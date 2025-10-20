@@ -6,6 +6,8 @@ import java.util.Set;
 
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
+import com.example.cooking.dto.CategoryDTO;
+import com.example.cooking.dto.TagDTO;
 import com.example.cooking.dto.UserDTO;
 
 import lombok.AllArgsConstructor;
@@ -39,11 +41,19 @@ public class RecipeSummaryDTO {
 
     private LocalDateTime updatedAt;
     
-    private Set<CategoryResponseDTO> categories = new LinkedHashSet<>();
-    private Set<TagResponseDTO> tags = new LinkedHashSet<>();
+    private Set<CategoryDTO> categories = new LinkedHashSet<>();
+    private Set<TagDTO> tags = new LinkedHashSet<>();
 
-    private UserDTO author; // Lấy từ User (recipe.getUser().getUsername() hoặc getFullName())
+    private UserDTO user;
 
-    private Long likesCount;
+    private Long likeCount;
+
+    private Long commentCount;
+
+    private Boolean likedByCurrentUser;
+
+    private Long saveCount;
+
+    private Boolean savedByCurrentUser;
 
 }

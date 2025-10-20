@@ -10,7 +10,5 @@ import lombok.Data;
 public class IngredientDTO {
     private String name;
 
-    // private String unit;
-
     private Status status;
 }
