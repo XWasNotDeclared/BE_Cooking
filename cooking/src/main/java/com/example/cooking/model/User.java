@@ -2,7 +2,10 @@ package com.example.cooking.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 // import org.hibernate.annotations.CreationTimestamp;s
 
@@ -17,11 +20,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+// import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -71,13 +76,30 @@ public class User {
     @Column(name = "roles", nullable = false)
     private Role roles;
     
-        
+    @Builder.Default
+    @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Recipe> recipes = new ArrayList<>();
+    /////follow/////
+    @Builder.Default
+    @OneToMany(mappedBy = "followed", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserFollow> followers = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserFollow> following = new ArrayList<>();
+    //chat and notify
+    @Builder.Default
+    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
+
+    @Builder.Default
+    @ManyToMany(mappedBy = "participants")
+    private Set<Conversation> conversations = new HashSet<>();
     @PrePersist
     void initCreatedDate(){
         this.createdAt = LocalDateTime.now();
     }
 
-    @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Recipe> recipes;
+
     
 }
