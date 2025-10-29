@@ -3,6 +3,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.example.cooking.common.enums.Difficulty;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 
@@ -58,12 +59,17 @@ public class Recipe {
     @Column(name= "cook_time", nullable = false)
     private Long cookTime;
 
+    @Column(name ="difficulty", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Difficulty difficulty;
+
     @Column(name= "scope", nullable = false)
     @Enumerated(EnumType.STRING)
     private Scope scope;
 
     @Column(name= "created_at", nullable = false)
     private LocalDateTime createdAt;
+
 
     @Column(name= "updated_at", nullable = false)
     private LocalDateTime updatedAt;

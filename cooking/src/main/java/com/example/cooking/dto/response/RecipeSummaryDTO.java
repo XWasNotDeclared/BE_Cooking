@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.example.cooking.common.enums.Difficulty;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.CategoryDTO;
@@ -30,6 +31,8 @@ public class RecipeSummaryDTO {
     private Long prepTime;
 
     private Long cookTime;
+
+    private Difficulty difficulty;
 
     private Long servings;
 

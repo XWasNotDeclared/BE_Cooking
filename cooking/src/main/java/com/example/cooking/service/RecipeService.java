@@ -1,13 +1,20 @@
 package com.example.cooking.service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.cooking.common.PageDTO;
+import com.example.cooking.common.enums.Difficulty;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.mapper.RecipeMapper;
@@ -15,13 +22,16 @@ import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.request.StepRequestDTO;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
+import com.example.cooking.event.RecipeUpdatedEvent;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Recipe;
 import com.example.cooking.model.Step;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.RecipeRepository;
+import com.example.cooking.repository.RecipeSearchIndexRepository;
 import com.example.cooking.repository.UserRepository;
 import com.example.cooking.security.MyUserDetails;
+// import com.example.cooking.specifications.RecipeSpecifications;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +45,8 @@ public class RecipeService {
     private final UploadFileService uploadFileService;
     private final UserRepository userRepository;
     private final RecipeEnrichmentService recipeEnrichmentService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final RecipeSearchIndexRepository recipeSearchIndexRepository;
     // private final StepMapper  stepMapper;
 
         @Transactional
@@ -65,11 +77,14 @@ public class RecipeService {
                 recipe.getSteps().add(step); // Thêm bước vào danh sách các bước của công thức
             }
             recipe.setStatus(Status.PENDING);
+            recipe.setDifficulty(Difficulty.EASY);//TODO: change later
             recipe.setUser(user);
             // recipe.getSteps().forEach(step -> step.setRecipe(recipe));
             recipe.getRecipeIngredients().forEach(ri -> ri.setRecipe(recipe));
-            recipeRepository.save(recipe);
-            return recipe.getId();
+            Recipe saved = recipeRepository.save(recipe);
+            //phat event sua cong thuc
+            eventPublisher.publishEvent(new RecipeUpdatedEvent(saved.getId()));
+            return saved.getId();
         }
 ///////////////lay 1 recipe/////////////////////////
     public RecipeDetailResponse getRecipeDetailById(Long id, MyUserDetails currentUser) {
@@ -103,5 +118,57 @@ public class RecipeService {
                 .orElseThrow(() -> new CustomException("Khong tim thay recipe voi id: " + id));
         return recipe;
     }
+///////////////////////////////////////////////////////////////////////////////
+    // Test///////////
+    //////
+    //Search by keyword
+
+public PageDTO<RecipeSummaryDTO> searchByKeyWord(String keyWord, Pageable pageable, MyUserDetails currentUser) {
+    // 1. Format keyword cho BOOLEAN MODE: mỗi từ bắt buộc có dấu +
+    // Ví dụ: "món chiên" -> "+món +chiên"
+    String booleanKeyword = Arrays.stream(keyWord.trim().split("\\s+"))
+                                  .map(word -> "+" + word)
+                                  .collect(Collectors.joining(" "));
+
+    // 2. Gọi repository với BOOLEAN MODE
+    Page<Recipe> recipePage = recipeSearchIndexRepository.searchRecipesByKeyWordPage(booleanKeyword, pageable);
+
+    // 3. Nếu không có kết quả, trả về PageDTO rỗng
+    if (recipePage.isEmpty()) {
+        return PageDTO.empty(pageable);
+    }
+
+    // 4. Map entity sang DTO
+    List<RecipeSummaryDTO> recipeSummaryDTOs = recipeMapper.toSummaryDTOList(recipePage.getContent());
+
+    // 5. Enrich dữ liệu thêm theo user
+    recipeSummaryDTOs = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaryDTOs, currentUser.getId());
+
+    // 6. Trả về PageDTO với dữ liệu đã map
+    return new PageDTO<>(recipePage, recipeSummaryDTOs);
+}
+
+
+     // Search tất cả nguyên liệu (dùng Specification với LIKE)
+    // public Page<RecipeSummaryDTO> searchByAllIngredients(List<String> ingredients, int page, int size) {
+    //     if (ingredients == null || ingredients.isEmpty()) {
+    //         return Page.empty();
+    //     }
+
+    //     // Chuẩn hóa về lowercase
+    //     List<String> normalized = ingredients.stream()
+    //                                          .map(String::toLowerCase)
+    //                                          .toList();
+
+    //     // Tạo Specification LIKE động
+    //     Specification<Recipe> spec = RecipeSpecifications.hasAllIngredientsLike(normalized);
+
+    //     // Tạo Pageable (sắp xếp theo createdAt DESC)
+    //     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+    //     // Query và map sang DTO
+    //     Page<Recipe> recipePage = recipeRepository.findAll(spec, pageable);
+    //     return recipePage.map(recipeMapper::toSummaryDTO);
+    // }
 
 }
