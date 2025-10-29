@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll() // Allow unauthenticated access to /auth endpoints
                         .requestMatchers(HttpMethod.GET, "/public/**").permitAll() // Allow unauthenticated access to GET /recipes
                         .requestMatchers("/v3/api-docs/**","/swagger-ui/**").permitAll()
-                        .requestMatchers("static_resource/public/upload/**").permitAll()
+                        .requestMatchers("/static_resource/public/upload/**").permitAll()
                         .requestMatchers("/user/**").hasRole("USER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // All other endpoints require authentication
@@ -66,7 +66,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:8081","http://localhost:3000/")); // URL
+        config.setAllowedOrigins(List.of("http://localhost:8081","http://localhost:3000/","http://127.0.0.1:5500")); // URL
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

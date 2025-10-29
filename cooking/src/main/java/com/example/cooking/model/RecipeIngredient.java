@@ -32,7 +32,7 @@ public class RecipeIngredient {
     @Column(name = "unit")
     private String unit;
 
-    @Column(name = "rawName")
+    @Column(name = "raw_name")
     private String rawName;
 
     @Column(name = "display_order")
