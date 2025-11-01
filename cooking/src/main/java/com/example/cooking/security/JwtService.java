@@ -2,11 +2,12 @@ package com.example.cooking.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-// import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 
-import org.springframework.beans.factory.annotation.Value;
+import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import com.example.cooking.config.JwtProperties;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -15,9 +16,9 @@ import java.util.Map;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
 @Component
+@RequiredArgsConstructor
 public class JwtService {
-    @Value("${app.jwt.secret}")
-    private String secret;
+    private final JwtProperties jwtProperties;
 
     public String generateToken(String subject) {
         Map<String, Object> claims = new HashMap<>();
@@ -29,14 +30,14 @@ public class JwtService {
                 .claims(claims) 
                 .subject(subject)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 100000 * 60 * 30))
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
                 .signWith(getSignKey())
                 .compact();
 
     }
 
     private SecretKey getSignKey() {
-        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 

@@ -17,7 +17,6 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(exclude = "recipes")
 @Table(name = "collections")
 public class Collection {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "collection_id")

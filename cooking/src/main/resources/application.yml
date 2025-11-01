@@ -41,6 +41,7 @@ app:
   jwt:
     secret: thisismyscretkeyformyownmuahahahahahahahahahahahahahahaha
     expiration: 3600000 # 1 hour in milliseconds
+    refresh-expiration: 360000000
     header: Authorization
     prefix: Bearer
   admin:

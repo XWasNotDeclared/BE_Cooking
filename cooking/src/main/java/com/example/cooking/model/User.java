@@ -95,6 +95,11 @@ public class User {
     @Builder.Default
     @ManyToMany(mappedBy = "participants")
     private Set<Conversation> conversations = new HashSet<>();
+
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<RefreshToken> refreshTokens = new ArrayList<>();
     @PrePersist
     void initCreatedDate(){
         this.createdAt = LocalDateTime.now();
