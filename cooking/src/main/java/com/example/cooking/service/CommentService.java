@@ -1,7 +1,6 @@
 package com.example.cooking.service;
 
 import com.example.cooking.model.Comment;
-import com.example.cooking.model.Recipe;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.CommentLikeRepository;
 import com.example.cooking.repository.CommentRepository;
@@ -9,18 +8,14 @@ import com.example.cooking.repository.RecipeRepository;
 import com.example.cooking.repository.UserRepository;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.common.PageDTO;
-import com.example.cooking.common.enums.Scope;
-import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.CommentDTO;
 import com.example.cooking.dto.mapper.CommentMapper;
 import com.example.cooking.dto.projection.LikeCountCommentProjection;
 import com.example.cooking.dto.projection.ReplyCountCommentProjection;
 import com.example.cooking.dto.request.CommentRequestDTO;
-import com.example.cooking.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

@@ -1,13 +1,10 @@
 package com.example.cooking.service;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.example.cooking.common.enums.Role;
 import com.example.cooking.common.enums.UserStatus;
 import com.example.cooking.dto.UserDTO;
@@ -40,8 +37,8 @@ public class UserService {
         if (!(avatar == null || avatar.isEmpty())) {
             String avatarUrl = uploadFileService.saveFile(avatar);
             user.setAvatarUrl(avatarUrl);
-        }
-        else user.setAvatarUrl("/static_resource/public/upload/avatars/avatarHolder.png");
+        } else
+            user.setAvatarUrl("/static_resource/public/upload/avatars/avatarHolder.png");
         List<String> errors = new ArrayList<>();
         if (userRepository.existsByEmail(user.getEmail())) {
             errors.add("Email da ton tai");
@@ -53,9 +50,6 @@ public class UserService {
         if (!errors.isEmpty()) {
             throw new DuplicateFieldException(errors);
         }
-
-        // Implement your user saving logic here
-        // For example, save user to database and return success message
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
         return savedUser.getId();

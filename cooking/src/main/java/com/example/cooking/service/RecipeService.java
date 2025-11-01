@@ -6,15 +6,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.cooking.common.PageDTO;
-import com.example.cooking.common.enums.Difficulty;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.mapper.RecipeMapper;
@@ -47,7 +43,6 @@ public class RecipeService {
     private final RecipeEnrichmentService recipeEnrichmentService;
     private final ApplicationEventPublisher eventPublisher;
     private final RecipeSearchIndexRepository recipeSearchIndexRepository;
-    // private final StepMapper  stepMapper;
 
         @Transactional
         public Long addNewRecipe(MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
@@ -58,7 +53,7 @@ public class RecipeService {
                 String mainImageUrl = uploadFileService.saveFile(newRecipeRequest.getImage());
                 recipe.setImageUrl(mainImageUrl);
             } else
-                recipe.setImageUrl("Khong co anh");
+                recipe.setImageUrl("/static_resource/public/upload/avatars/avatarHolder.png");
             
             List<StepRequestDTO> stepDTOs = newRecipeRequest.getSteps();
             for (int i = 0; i < stepDTOs.size(); i++) {
@@ -77,7 +72,6 @@ public class RecipeService {
                 recipe.getSteps().add(step); // Thêm bước vào danh sách các bước của công thức
             }
             recipe.setStatus(Status.PENDING);
-            recipe.setDifficulty(newRecipeRequest.getDifficulty());//TODO: change later
             recipe.setUser(user);
             // recipe.getSteps().forEach(step -> step.setRecipe(recipe));
             recipe.getRecipeIngredients().forEach(ri -> ri.setRecipe(recipe));
