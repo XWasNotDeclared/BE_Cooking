@@ -1,22 +1,10 @@
 package com.example.cooking.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.example.cooking.common.enums.Scope;
-import com.example.cooking.common.enums.Status;
-import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.RecipeLike;
-import com.example.cooking.model.Recipe;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.LikeRepository;
 import com.example.cooking.repository.RecipeRepository;

@@ -77,7 +77,7 @@ public class RecipeService {
                 recipe.getSteps().add(step); // Thêm bước vào danh sách các bước của công thức
             }
             recipe.setStatus(Status.PENDING);
-            recipe.setDifficulty(Difficulty.EASY);//TODO: change later
+            recipe.setDifficulty(newRecipeRequest.getDifficulty());//TODO: change later
             recipe.setUser(user);
             // recipe.getSteps().forEach(step -> step.setRecipe(recipe));
             recipe.getRecipeIngredients().forEach(ri -> ri.setRecipe(recipe));
