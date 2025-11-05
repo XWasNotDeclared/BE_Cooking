@@ -44,5 +44,6 @@ public class RecipeDetailResponse {
     private Set<IngredientInRecipeResponse> ingredients = new LinkedHashSet<>();
     private Set<CategoryDTO> categories = new LinkedHashSet<>();
     private Set<TagDTO> tags = new LinkedHashSet<>();
-    private Long likesCount;
+    private Long likeCount;
+    private Long saveCount;
 }

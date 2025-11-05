@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,7 +58,7 @@ public class AdminController {
         return ApiResponse.ok("Add list ingredient done");
     }
 
-    @PostMapping("/recipe/{id}/status")
+    @PatchMapping("/recipe/{id}/status")
     public ResponseEntity<ApiResponse<String>> setRecipeStatus (@PathVariable Long id,
     @RequestParam Status status){
         adminService.setRecipeStatus(id, status);

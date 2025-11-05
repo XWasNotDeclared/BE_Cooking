@@ -1,6 +1,7 @@
 package com.example.cooking.dto.mapper;
 
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +12,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.example.cooking.repository.CollectionRecipeRepository;
 import com.example.cooking.config.AppProperties;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
@@ -35,6 +37,9 @@ public abstract class RecipeMapper {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private CollectionRecipeRepository collectionRecipeRepository;
+
+    @Autowired
     private TagRepository tagRepository;
     @Autowired
     protected AppProperties appProperties;
@@ -53,7 +58,8 @@ public abstract class RecipeMapper {
     public abstract Recipe toRecipe(NewRecipeRequest entity);
     
 
-    @Mapping (target = "likesCount", ignore = true)
+    @Mapping (target = "likeCount", ignore = true)
+    @Mapping (target = "saveCount", ignore = true)
     @Mapping (target = "ingredients", source = "recipeIngredients")
     public abstract RecipeDetailResponse toRecipeResponse(Recipe entity);
 
@@ -75,9 +81,12 @@ public abstract class RecipeMapper {
 
 
     @AfterMapping
-    protected void addLikeCount(@MappingTarget RecipeDetailResponse response, Recipe entity) {
-        Long count = likeRepository.countByRecipeId(entity.getId());
-        response.setLikesCount(count);
+    protected void addLikeCountAndSaveCountAndAddBaseURLImage(@MappingTarget RecipeDetailResponse response, Recipe entity) {
+        Long likeCount = likeRepository.countByRecipeId(entity.getId());
+        response.setLikeCount(likeCount);
+        Long saveCount = collectionRecipeRepository.countCollectionsByRecipeId(entity.getId());
+        response.setLikeCount(likeCount);
+        response.setSaveCount(saveCount);
         if (entity.getImageUrl() != null) {
             response.setImageUrl(appProperties.getStaticBaseUrl() + entity.getImageUrl());
         }

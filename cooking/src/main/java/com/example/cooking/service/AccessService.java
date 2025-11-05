@@ -24,12 +24,31 @@ public class AccessService {
     public void checkRecipeAccess(Long recipeId, Long currentUserId) {
         RecipePermissionInfoProjection recipeInfo = recipeRepository.findPermissionInfoById(recipeId)
                 .orElseThrow(() -> new CustomException("Không tìm thấy recipe với id = " + recipeId));
-
-        if (recipeInfo.getScope() == com.example.cooking.common.enums.Scope.PRIVATE
+        if (recipeInfo.getScope() != com.example.cooking.common.enums.Scope.PUBLIC
                 || recipeInfo.getStatus() != com.example.cooking.common.enums.Status.APPROVED) {
             if (!recipeInfo.getUserId().equals(currentUserId)) {
                 throw new CustomException("Bạn không có quyền xem công thức này.");
             }
         }
     }
+
+        /**
+     * Kiểm tra quyền dựa trên Recipe entity
+     */
+    public void checkRecipeAccess(Recipe recipe, Long currentUserId) {
+        checkRecipeAccess(recipe.getScope(), recipe.getStatus(), recipe.getUser().getId(), currentUserId);
+    }
+
+    private void checkRecipeAccess(com.example.cooking.common.enums.Scope scope,
+                                   com.example.cooking.common.enums.Status status,
+                                   Long ownerId,
+                                   Long currentUserId) {
+        if (scope != com.example.cooking.common.enums.Scope.PUBLIC
+                || status != com.example.cooking.common.enums.Status.APPROVED) {
+            if (currentUserId == null || !ownerId.equals(currentUserId)) {
+                throw new CustomException("Bạn không có quyền xem công thức này.");
+            }
+        }
+    }
+
 }

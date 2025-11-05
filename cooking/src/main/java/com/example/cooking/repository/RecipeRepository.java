@@ -30,13 +30,23 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
             "tags" })
     Optional<Recipe> findByIdAndScopeAndStatus(Long id, Scope scope, Status status);
 
-    @EntityGraph(attributePaths = { "user", "steps", "recipeIngredients", "recipeIngredients.ingredient",
-            "categories",
-            "tags" })
+//     @EntityGraph(attributePaths = { "user", "steps", "recipeIngredients", "recipeIngredients.ingredient",
+//             "categories",
+//             "tags" })
     Optional<Recipe> findById(Long id);
 
     @Query("SELECT r FROM Recipe r JOIN FETCH r.user WHERE r.user.id = :userId")
     Page<Recipe> findByUserId(Long userId, Pageable pageable);
+
+    // Lấy recipe theo recipeId có cả user luôn
+    @Query("""
+    SELECT r
+    FROM Recipe r
+    JOIN FETCH r.user
+    WHERE r.id = :recipeId
+        """)
+        Optional<Recipe> findByIdWithUser(@Param("recipeId") Long recipeId);
+
 
     // tuong duong findById nhung khong join fetch
     @Query("SELECT r FROM Recipe r WHERE r.id = :id")
@@ -69,5 +79,19 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
                 ORDER BY cr.order ASC, cr.addedAt ASC
             """)
     Page<Recipe> findRecipesByCollectionId(@Param("collectionId") Long collectionId, Pageable pageable);
+
+    @Query("""
+        SELECT DISTINCT r FROM Recipe r
+        JOIN r.tags t
+        WHERE t.id = :tagId
+          AND r.scope = :scope
+          AND r.status = :status
+        """)
+    Page<Recipe> findPublicApprovedByTagId(
+            @Param("tagId") Long tagId,
+            @Param("scope") Scope scope,
+            @Param("status") Status status,
+            Pageable pageable
+    );
 
 }

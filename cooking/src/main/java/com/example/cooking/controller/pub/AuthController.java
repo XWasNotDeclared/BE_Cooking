@@ -20,7 +20,6 @@ import com.example.cooking.dto.response.AccessToken;
 import com.example.cooking.dto.response.LoginResponse;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.service.AuthService;
-import com.example.cooking.service.RefreshTokenService;
 import com.example.cooking.service.UserService;
 
 import jakarta.validation.Valid;

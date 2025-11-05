@@ -19,11 +19,12 @@ public abstract class StepMapper {
     public abstract StepDTO toDTO(Step step);
 
     @AfterMapping
-    protected void addFullImageURL(@MappingTarget StepDTO response, Step entity) {
+    protected void addFullImageURL(@MappingTarget StepDTO response, Step entity) { 
         if (entity.getImageUrls() != null && !entity.getImageUrls().isEmpty()) {
             for (int i = 0; i < entity.getImageUrls().size(); i++) {
                 String imageUrl = entity.getImageUrls().get(i);
-                if (imageUrl != null && !imageUrl.startsWith("http")) {
+                // if (imageUrl != null && !imageUrl.startsWith("http")) {
+                if (imageUrl != null) {
                     entity.getImageUrls().set(i, appProperties.getStaticBaseUrl()+ imageUrl); 
                 }
             }

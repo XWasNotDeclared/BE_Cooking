@@ -1,6 +1,8 @@
 -CHƯA TEST FOLLOWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+- KHI SET RECIPE TỪ PUBLIC VỀ PRIVATE NHỚ UPDATE LẠI COLLECTIONNNNN -> thôi, trong collection service sửa lại các cái không hợp lệ bằng place holder rồi hê
 
-
+-mới đổi đếm save từ collectrepo -> collectRecipeRepo -> check
+check thêm hàm đếm save trong collect repo (dùng trong @aftermatch detail recipe (recipemapper))
 
 đổi difficalty trong create thanh notnull và sửa hardcore trong create recipe service
 - cân nhắc dùng Meilisearch

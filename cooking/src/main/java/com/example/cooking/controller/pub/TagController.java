@@ -1,27 +1,34 @@
 package com.example.cooking.controller.pub;
 
 import java.util.List;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.cooking.common.ApiResponse;
+import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.TagDTO;
-import com.example.cooking.dto.request.AddTagRequest;
+import com.example.cooking.dto.response.RecipeSummaryDTO;
+import com.example.cooking.security.MyUserDetails;
+import com.example.cooking.service.RecipeService;
 import com.example.cooking.service.TagService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/tags")
+@RequiredArgsConstructor
 public class TagController {
 
     private final TagService tagService;
+    private final RecipeService recipeService;
 
-    public TagController(TagService tagService) {
-        this.tagService = tagService;
-    }
-
+    // TODO: check role USER or ADMIN
     @PostMapping
-    //TODO: check role USER or ADMIN
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<TagDTO>> createTag(@RequestParam String tagName) {
         return ApiResponse.ok(tagService.createTag(tagName));
@@ -32,7 +39,16 @@ public class TagController {
         return ApiResponse.ok(tagService.getTagById(id));
     }
 
-    @GetMapping("/slug/{slug}")
+    @GetMapping("/{id}/recipes")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getRecipeByTagId(@AuthenticationPrincipal MyUserDetails currentUser,
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ApiResponse.ok(recipeService.getRecipeByTagId(currentUser,id, pageable));
+    }
+
+    @GetMapping("/{slug}")
     public ResponseEntity<ApiResponse<TagDTO>> getTagBySlug(@PathVariable String slug) {
         return ApiResponse.ok(tagService.getTagBySlug(slug));
     }
@@ -41,12 +57,6 @@ public class TagController {
     public ResponseEntity<List<TagDTO>> getAllTags() {
         return ResponseEntity.ok(tagService.getAllTags());
     }
-
-    // @PutMapping("/{id}")
-    // @PreAuthorize("hasRole('ADMIN')") // chỉ admin được update
-    // public ResponseEntity<TagResponse> updateTag(@PathVariable Long id, @RequestBody Tag tag) {
-    //     return ResponseEntity.ok(tagService.updateTag(id, tag));
-    // }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')") // chỉ admin được xóa

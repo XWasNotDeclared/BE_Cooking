@@ -21,7 +21,7 @@ import com.example.cooking.dto.projection.RecipeSavesProjection;
 import com.example.cooking.dto.projection.RecipeTagProjection;
 import com.example.cooking.dto.CategoryDTO;
 import com.example.cooking.dto.TagDTO;
-import com.example.cooking.repository.CollectionRepository;
+import com.example.cooking.repository.CollectionRecipeRepository;
 import com.example.cooking.repository.CommentRepository;
 import com.example.cooking.repository.LikeRepository;
 import com.example.cooking.repository.RecipeRepository;
@@ -36,7 +36,7 @@ public class RecipeEnrichmentService {
     private final RecipeRepository recipeRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
-    private final CollectionRepository collectionRepository;
+    private final CollectionRecipeRepository collectionRecipeRepository;
 
     /**
      * Map categories riêng biệt
@@ -104,7 +104,7 @@ public class RecipeEnrichmentService {
         List<RecipeTagProjection> tagProjections = recipeRepository.findTagsByRecipeIds(recipeIds);
         List<CommentCountProjection> commentCountProjections = commentRepository.countCommentsByRecipeIds(recipeIds);
         List<RecipeLikesProjection> likeProjections = likeRepository.countLikeAndfindLikedByUser(recipeIds, currentUserId);
-        List<RecipeSavesProjection> saveProjections = collectionRepository.countSavesAndCheckUserSaved(recipeIds, currentUserId);
+        List<RecipeSavesProjection> saveProjections = collectionRecipeRepository.countSavesAndCheckUserSaved(recipeIds, currentUserId);
         // Build maps
         Map<Long, Set<CategoryDTO>> categoriesMap = categoryProjections.stream()
                 .collect(Collectors.groupingBy(
