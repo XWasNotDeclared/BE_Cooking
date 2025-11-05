@@ -59,4 +59,16 @@ public class RecipeSummaryDTO {
 
     private Boolean savedByCurrentUser;
 
+    
+    public static RecipeSummaryDTO unavailablePlaceholder(Long recipeId) {
+        RecipeSummaryDTO dto = new RecipeSummaryDTO();
+        dto.setId(recipeId);
+        dto.setTitle("Công thức này hiện không khả dụng");
+        dto.setDescription("Công thức đã được đặt ở chế độ riêng tư hoặc đã bị gỡ bỏ.");
+        dto.setImageUrl(null);
+        dto.setScope(com.example.cooking.common.enums.Scope.PRIVATE);
+        dto.setStatus(com.example.cooking.common.enums.Status.REJECTED); // hoặc tạo enum riêng nếu cần
+        return dto;
+    }
+
 }

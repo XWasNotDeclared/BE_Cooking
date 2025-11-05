@@ -1,8 +1,5 @@
 package com.example.cooking.controller.user;
 
-import java.util.List;
-
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -50,35 +47,36 @@ public class CollectionController {
     public ResponseEntity<ApiResponse<String>> deleteCollection(@AuthenticationPrincipal MyUserDetails currentUser,
             @PathVariable Long collectionId) {
         collectionService.deleteCollection(currentUser, collectionId);
-        return ApiResponse.ok("Da xoa collection");
+        return ApiResponse.ok("Đã xóa collection");
     }
 
-    @GetMapping("/myColection")
+    @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<PageDTO<CollectionDTO>>> getMyCollections(
             @AuthenticationPrincipal MyUserDetails currentUser,
+            @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        PageDTO<CollectionDTO> myCollectionPage = collectionService.getMyCollections(currentUser, pageable);
-        return ApiResponse.ok(myCollectionPage);
+        PageDTO<CollectionDTO> collectionPage = collectionService.getCollectionsByUserId(currentUser,userId, pageable);
+        return ApiResponse.ok(collectionPage);
     }
 
-    @PostMapping("/addRecipe/{collectionId}")
+    @PostMapping("/add-recipe/{collectionId}")
     public ResponseEntity<ApiResponse<String>> addRecipeToCollection(@AuthenticationPrincipal MyUserDetails currentUser,
             @PathVariable Long collectionId, @RequestParam Long recipeId) {
         collectionService.addRecipeToCollection(currentUser, collectionId, recipeId);
-        return ApiResponse.ok("Da them");
+        return ApiResponse.ok("Đã thêm");
     }
 
-    @PostMapping("/removeRecipe/{collectionId}")
+    @PostMapping("/remove-recipe/{collectionId}")
     public ResponseEntity<ApiResponse<String>> removeRecipeToCollection(
             @AuthenticationPrincipal MyUserDetails currentUser,
             @PathVariable Long collectionId, @RequestParam Long recipeId) {
         collectionService.removeRecipeFromCollection(currentUser, collectionId, recipeId);
-        return ApiResponse.ok("Da bo");
+        return ApiResponse.ok("Đã loại bỏ");
     }
 
-    @GetMapping("/{collectionId}")
+    @GetMapping("/{collectionId}/recipes")
     public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getRecipesByCollectionId(@AuthenticationPrincipal MyUserDetails currentUser,
                                 @PathVariable Long collectionId,
                                 @RequestParam(defaultValue = "0") int page,

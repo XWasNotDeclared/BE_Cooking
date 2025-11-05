@@ -56,6 +56,13 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(HttpStatus.BAD_REQUEST, errs.toString());
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        Map<String, String> errs = new HashMap<>();
+        errs.put("errs", ex.getMessage());
+        return ApiResponse.error(HttpStatus.BAD_REQUEST, errs.toString());
+    }
+
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleSecurityException(SecurityException ex) {
         Map<String, String> errs = new HashMap<>();

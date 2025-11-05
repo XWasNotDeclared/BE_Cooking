@@ -1,12 +1,10 @@
 package com.example.cooking.service;
 
 import com.example.cooking.dto.CategoryDTO;
-import com.example.cooking.dto.IngredientDTO;
 import com.example.cooking.dto.mapper.CategoryMapper;
 import com.example.cooking.dto.request.CategoryRequestDTO;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Category;
-import com.example.cooking.model.Tag;
 import com.example.cooking.repository.CategoryRepository;
 
 import jakarta.transaction.Transactional;

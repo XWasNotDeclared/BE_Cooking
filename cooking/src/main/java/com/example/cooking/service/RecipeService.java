@@ -1,16 +1,14 @@
 package com.example.cooking.service;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.example.cooking.common.PageDTO;
+import com.example.cooking.common.enums.Role;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.mapper.RecipeMapper;
@@ -27,6 +25,7 @@ import com.example.cooking.repository.RecipeRepository;
 import com.example.cooking.repository.RecipeSearchIndexRepository;
 import com.example.cooking.repository.UserRepository;
 import com.example.cooking.security.MyUserDetails;
+import com.example.cooking.exception.ResourceNotFoundException;
 // import com.example.cooking.specifications.RecipeSpecifications;
 
 import jakarta.transaction.Transactional;
@@ -36,13 +35,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RecipeService {
     private final RecipeRepository recipeRepository;
-    // private final UserMapper userMapper;
     private final RecipeMapper recipeMapper;
     private final UploadFileService uploadFileService;
     private final UserRepository userRepository;
     private final RecipeEnrichmentService recipeEnrichmentService;
     private final ApplicationEventPublisher eventPublisher;
     private final RecipeSearchIndexRepository recipeSearchIndexRepository;
+    private final AccessService accessService;
 
         @Transactional
         public Long addNewRecipe(MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
@@ -80,18 +79,49 @@ public class RecipeService {
             eventPublisher.publishEvent(new RecipeUpdatedEvent(saved.getId()));
             return saved.getId();
         }
+
+    public void setRecipeScope(MyUserDetails currentUser,Long recipeId, Scope scope) {
+        User user = userRepository.findById(currentUser.getId()).orElseThrow(()-> new ResourceNotFoundException("User không hợp lệ"));
+        
+        Recipe recipe = recipeRepository.findByIdWithUser(recipeId).orElseThrow(() -> new ResourceNotFoundException("Recipe not found with id: " + recipeId));
+        
+        if (user.getRoles()!=Role.ROLE_ADMIN){
+            if(user.getId()!=recipe.getUser().getId()){
+                throw new CustomException("Bạn không có quyền chỉnh sửa công thức này");
+            }
+        } 
+        // Cập nhật
+        recipe.setScope(scope);
+        recipeRepository.save(recipe);
+    }
+
 ///////////////lay 1 recipe/////////////////////////
     public RecipeDetailResponse getRecipeDetailById(Long id, MyUserDetails currentUser) {
         //ok vì cần fetch all nên join
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Recipe not found with id: " + id));
-        // Kiểm tra quyền truy cập
-        if (recipe.getScope() != Scope.PUBLIC || recipe.getStatus() != Status.APPROVED) {
-            if (currentUser == null || !recipe.getUser().getId().equals(currentUser.getId())) {
-                throw new CustomException("You don't have permission to view this recipe.");
-            }
+        // 2. Kiểm tra quyền truy cập thông qua AccessService
+        Long currentUserId = currentUser != null ? currentUser.getId() : null;
+        accessService.checkRecipeAccess(recipe, currentUserId);
+            return recipeMapper.toRecipeResponse(recipe);
         }
-        return recipeMapper.toRecipeResponse(recipe);
+
+// Lay recipe theo tag
+    public PageDTO<RecipeSummaryDTO> getRecipeByTagId(MyUserDetails currentUser, Long tagId, Pageable pageable) {
+        Page<Recipe> recipePage = recipeRepository.findPublicApprovedByTagId(
+                tagId,
+                Scope.PUBLIC,
+                Status.APPROVED,
+                pageable
+        );
+        
+        if (recipePage.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+        //basic infor
+        List<RecipeSummaryDTO> recipeSummaries = recipeMapper.toSummaryDTOList(recipePage.getContent());
+        recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
+        return new PageDTO<>(recipePage, recipeSummaries);
     }
 //////////////////////////////////////////
     public PageDTO<RecipeSummaryDTO> getMyRecipes(MyUserDetails currentUser, Pageable pageable) {
@@ -105,7 +135,7 @@ public class RecipeService {
         recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
         return new PageDTO<>(recipePage, recipeSummaries);
     }
-
+///////////////////////////////
     public Recipe getRecipeById(Long id) {// admin only
         //TODO: fix
         Recipe recipe = recipeRepository.findById(id)

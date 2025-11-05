@@ -49,7 +49,7 @@ public class CategoryController {
     }
     
 
-    @PostMapping("/addBatch")
+    @PostMapping("/add-batch")
     public ResponseEntity<ApiResponse<List<CategoryDTO>>> createCategories(
             @RequestBody List<CategoryRequestDTO> categories) {
         List<CategoryDTO> createdCategories = categoryService.createCategories(categories);

@@ -22,7 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/user/test/recipes")
-public class TESTSEARCH {
+public class SearchController {
 
     @Autowired
     private RecipeService recipeService;

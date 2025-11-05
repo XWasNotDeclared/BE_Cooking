@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 // import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,7 +38,7 @@ import com.example.cooking.service.RecipeService;
 import com.example.cooking.service.RefreshTokenService;
 import com.example.cooking.service.TagService;
 import com.example.cooking.service.UserService;
-
+import com.example.cooking.common.enums.*;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,6 @@ public class UserController {
     private final UserService userService;
     private final RecipeService recipeService;
     private final RecipeLikeService likeService;
-    // private final RecipeMapper recipeMapper;
     private final IngredientService ingredientService;
     private final CategoryService categoryService;
     private final TagService tagService;
@@ -64,27 +64,6 @@ public class UserController {
         authService.handleLogoutAll(currentUser.getId());
         return ApiResponse.ok("Logout all device successful");
     }
-
-    // @GetMapping("/me")
-    // public ResponseEntity<ApiResponse<User>> getCurrentUser() {
-    //     // Lấy Authentication từ SecurityContextHolder
-    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    //     if (authentication == null || !authentication.isAuthenticated()) {
-    //         return ApiResponse.error(HttpStatus.UNAUTHORIZED,"User is not authenticated");
-    //     }
-
-    //     // Lấy email từ Authentication
-    //     String email;
-    //     Object principal = authentication.getPrincipal();
-    //     if (principal instanceof UserDetails) {
-    //         email = ((UserDetails) principal).getUsername();
-    //     } else {
-    //         email = principal.toString();
-    //     }
-    //     // Lấy thông tin user từ database theo username
-    //     User user = userService.getUserByEmail(email);
-    //     return ApiResponse.ok(user);
-    // }
     @GetMapping("/my-profile")
     public ResponseEntity<ApiResponse<UserDTO>> getCurrentUser(@AuthenticationPrincipal MyUserDetails currentUser) {
 
@@ -101,7 +80,19 @@ public class UserController {
         //TODO: Doi kieu tra ve cho bao mat
         return ApiResponse.ok("Them thanh cong recipe voi id:" + recipeId);
     }
-    @GetMapping("/list/all-my-recipes")
+
+    @PatchMapping("/recipe/{id}/status")
+    public ResponseEntity<ApiResponse<String>> setRecipeStatus(
+        @AuthenticationPrincipal MyUserDetails currentUser,
+            @PathVariable Long id,
+            @RequestParam Scope scope) {
+        recipeService.setRecipeScope(currentUser, id, scope);
+        return ApiResponse.ok("Đặt phạm vi truy cập thành công");
+    }
+
+
+
+    @GetMapping("/my-recipes")
     public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getMyRecipes(@AuthenticationPrincipal MyUserDetails currentUser,
                                                                             @RequestParam(defaultValue = "0") int page,
                                                                             @RequestParam(defaultValue = "10") int size) {
