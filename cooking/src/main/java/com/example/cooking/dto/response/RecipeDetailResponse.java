@@ -8,6 +8,7 @@ import com.example.cooking.common.enums.Difficulty;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.CategoryDTO;
+import com.example.cooking.dto.RecipeIngredientDTO;
 import com.example.cooking.dto.StepDTO;
 import com.example.cooking.dto.TagDTO;
 import com.example.cooking.dto.UserDTO;
@@ -41,7 +42,7 @@ public class RecipeDetailResponse {
     private Status status;
     private UserDTO user;
     private Set<StepDTO> steps = new LinkedHashSet<>();
-    private Set<IngredientInRecipeResponse> ingredients = new LinkedHashSet<>();
+    private Set<RecipeIngredientDTO> ingredients = new LinkedHashSet<>();
     private Set<CategoryDTO> categories = new LinkedHashSet<>();
     private Set<TagDTO> tags = new LinkedHashSet<>();
     private Long likeCount;

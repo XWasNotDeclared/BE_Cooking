@@ -21,16 +21,7 @@ import com.example.cooking.model.Recipe;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpecificationExecutor<Recipe> {
 
-    // List<Recipe> findByUserId(Long userId);
-
-    // List<Recipe> findByUser(User user);
-
-    @EntityGraph(attributePaths = { "user", "steps", "recipeIngredients", "recipeIngredients.ingredient",
-            "categories",
-            "tags" })
-    Optional<Recipe> findByIdAndScopeAndStatus(Long id, Scope scope, Status status);
-
-//     @EntityGraph(attributePaths = { "user", "steps", "recipeIngredients", "recipeIngredients.ingredient",
+//     @EntityGraph(attributePaths = { "user", "steps", "recipeIngredients",
 //             "categories",
 //             "tags" })
     Optional<Recipe> findById(Long id);

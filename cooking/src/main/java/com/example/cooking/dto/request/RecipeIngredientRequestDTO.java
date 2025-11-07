@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class RecipeIngredientRequestDTO {
-    private Long ingredientId;   // Có thể null nếu user nhập tự do
     private Float quantity;      // Số lượng (nếu có)
     private String unit;         // Đơn vị, ví dụ "gram", "quả", "muỗng"
     @NotNull

@@ -20,22 +20,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.CategoryDTO;
-import com.example.cooking.dto.IngredientDTO;
 import com.example.cooking.dto.TagDTO;
 import com.example.cooking.dto.UserDTO;
-import com.example.cooking.dto.mapper.RecipeMapper;
-import com.example.cooking.dto.request.LogoutRequest;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
-import com.example.cooking.model.Tag;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.AuthService;
 import com.example.cooking.service.CategoryService;
-import com.example.cooking.service.IngredientService;
 import com.example.cooking.service.RecipeLikeService;
 import com.example.cooking.service.RecipeService;
-import com.example.cooking.service.RefreshTokenService;
 import com.example.cooking.service.TagService;
 import com.example.cooking.service.UserService;
 import com.example.cooking.common.enums.*;
@@ -50,7 +44,6 @@ public class UserController {
     private final UserService userService;
     private final RecipeService recipeService;
     private final RecipeLikeService likeService;
-    private final IngredientService ingredientService;
     private final CategoryService categoryService;
     private final TagService tagService;
     private final AuthService authService;
@@ -122,11 +115,6 @@ public class UserController {
                                                                         @AuthenticationPrincipal MyUserDetails currentUser){
         RecipeDetailResponse recipeResponse = recipeService.getRecipeDetailById(id, currentUser);
         return ApiResponse.ok(recipeResponse);
-    }
-    @GetMapping("/suggest/ingredients")
-    public ResponseEntity<ApiResponse<List<IngredientDTO>>> autoCompleteIngredient(@RequestParam String keyword) {
-       List<IngredientDTO> listSuggest = ingredientService.autocomplete(keyword);
-        return ApiResponse.ok(listSuggest);
     }
 
     @GetMapping("/suggest/categories")
