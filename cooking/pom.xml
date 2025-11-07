@@ -120,6 +120,17 @@
 			<version>1.6.3</version>
 		</dependency>
 <!--  -->
+<!-- https://mvnrepository.com/artifact/com.meilisearch.sdk/meilisearch-java -->
+<dependency>
+    <groupId>com.meilisearch.sdk</groupId>
+    <artifactId>meilisearch-java</artifactId>
+    <version>0.16.1</version>
+</dependency>
+<dependency>
+    <groupId>org.jetbrains.kotlin</groupId>
+    <artifactId>kotlin-reflect</artifactId>
+    <version>1.9.10</version> <!-- hoặc version Kotlin bạn đang dùng -->
+</dependency>
 
 <!--  -->
 		<dependency>

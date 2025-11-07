@@ -13,8 +13,11 @@ import com.example.cooking.dto.mapper.CommentMapper;
 import com.example.cooking.dto.projection.LikeCountCommentProjection;
 import com.example.cooking.dto.projection.ReplyCountCommentProjection;
 import com.example.cooking.dto.request.CommentRequestDTO;
+import com.example.cooking.event.RecipeCommentedEvent;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +42,7 @@ public class CommentService {
     private final UserRepository userRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final AccessService accessService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public CommentDTO createCommentOnRecipe(Long recipeId, CommentRequestDTO dto, MyUserDetails currentUser) {
@@ -52,6 +56,8 @@ public class CommentService {
         comment.setParentComment(null); // Bình luận trực tiếp trên công thức không có bình luận cha
         // Lưu bình luận
         comment = commentRepository.save(comment);
+        //publish event
+        eventPublisher.publishEvent(new RecipeCommentedEvent(user, currentUser.getMyUserName(),recipeRepository.getReferenceById(recipeId),comment));
         return commentMapper.toResponseDTO(comment);
     }
 

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.example.cooking.common.PageDTO;
+import com.example.cooking.common.enums.Difficulty;
 import com.example.cooking.common.enums.Role;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
@@ -70,7 +71,8 @@ public class RecipeService {
                 }
                 recipe.getSteps().add(step); // Thêm bước vào danh sách các bước của công thức
             }
-            recipe.setStatus(Status.PENDING);
+            recipe.setStatus(Status.APPROVED);
+            recipe.setDifficulty(Difficulty.EASY);
             recipe.setUser(user);
             // recipe.getSteps().forEach(step -> step.setRecipe(recipe));
             recipe.getRecipeIngredients().forEach(ri -> ri.setRecipe(recipe));
