@@ -6,10 +6,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.common.enums.Difficulty;
-import com.example.cooking.common.enums.Role;
+import com.example.cooking.common.enums.ImageType;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.mapper.RecipeMapper;
@@ -27,9 +28,6 @@ import com.example.cooking.repository.RecipeSearchIndexRepository;
 import com.example.cooking.repository.UserRepository;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.exception.ResourceNotFoundException;
-// import com.example.cooking.specifications.RecipeSpecifications;
-
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -50,10 +48,10 @@ public class RecipeService {
             Recipe recipe = recipeMapper.toRecipe(newRecipeRequest);
             // thieu anh chinh va steps
             if (!(newRecipeRequest.getImage() == null || newRecipeRequest.getImage().isEmpty())) {
-                String mainImageUrl = uploadFileService.saveFile(newRecipeRequest.getImage());
+                String mainImageUrl = uploadFileService.saveFile(newRecipeRequest.getImage(), ImageType.RECIPE);
                 recipe.setImageUrl(mainImageUrl);
             } else
-                recipe.setImageUrl("/static_resource/public/upload/avatars/avatarHolder.png");
+                recipe.setImageUrl("/static_resource/public/upload/avatars/avatar-holder.png");
             
             List<StepRequestDTO> stepDTOs = newRecipeRequest.getSteps();
             for (int i = 0; i < stepDTOs.size(); i++) {
@@ -65,7 +63,7 @@ public class RecipeService {
                 step.setRecipe(recipe); // Thiết lập mối quan hệ với Recipe
                 if (!(stepRequestDTO.getImages() == null || stepRequestDTO.getImages().isEmpty())) {
                     for (MultipartFile imageFile : stepRequestDTO.getImages()) {
-                        String imageUrl = uploadFileService.saveFile(imageFile);
+                        String imageUrl = uploadFileService.saveFile(imageFile, ImageType.STEP);
                         step.getImageUrls().add(imageUrl);
                     }
                 }
@@ -87,15 +85,35 @@ public class RecipeService {
         
         Recipe recipe = recipeRepository.findByIdWithUser(recipeId).orElseThrow(() -> new ResourceNotFoundException("Recipe not found with id: " + recipeId));
         
-        if (user.getRoles()!=Role.ROLE_ADMIN){
-            if(user.getId()!=recipe.getUser().getId()){
+        boolean isAdmin = user.getRoles().stream()
+                            .anyMatch(role -> "ROLE_ADMIN".equals(role.getName()));
+
+        if (!isAdmin) {
+            if (!user.getId().equals(recipe.getUser().getId())) {
                 throw new CustomException("Bạn không có quyền chỉnh sửa công thức này");
             }
-        } 
+        }
         // Cập nhật
         recipe.setScope(scope);
         recipeRepository.save(recipe);
     }
+
+    /**
+     * Tăng view khi user xem recipe
+     */
+    @Transactional
+    public void incrementView(Long recipeId) {
+        recipeRepository.incrementViews(recipeId);
+    }
+
+    /**
+     * Lấy số lượt view hiện tại
+     */
+    @Transactional(readOnly = true)
+    public Long getViews(Long recipeId) {
+        return recipeRepository.getViews(recipeId);
+    }
+
 
 ///////////////lay 1 recipe/////////////////////////
     public RecipeDetailResponse getRecipeDetailById(Long id, MyUserDetails currentUser) {
@@ -105,7 +123,10 @@ public class RecipeService {
         // 2. Kiểm tra quyền truy cập thông qua AccessService
         Long currentUserId = currentUser != null ? currentUser.getId() : null;
         accessService.checkRecipeAccess(recipe, currentUserId);
-            return recipeMapper.toRecipeResponse(recipe);
+        //Tăng lượt xem
+        incrementView(id);
+
+        return recipeMapper.toRecipeResponse(recipe);
         }
 
 // Lay recipe theo tag

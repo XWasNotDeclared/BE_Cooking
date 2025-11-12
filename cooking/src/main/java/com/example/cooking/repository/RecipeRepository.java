@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,6 +19,8 @@ import com.example.cooking.dto.projection.RecipeCategoryProjection;
 import com.example.cooking.dto.projection.RecipePermissionInfoProjection;
 import com.example.cooking.dto.projection.RecipeTagProjection;
 import com.example.cooking.model.Recipe;
+
+import jakarta.transaction.Transactional;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpecificationExecutor<Recipe> {
 
@@ -46,6 +49,17 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
     // Chỉ lấy user.id từ recipe
     @Query("SELECT r.user.id FROM Recipe r WHERE r.id = :recipeId")
     Optional<Long> findUserIdByRecipeId(@Param("recipeId") Long recipeId);
+
+    // Phương thức tăng view
+    @Modifying
+    @Transactional
+    @Query("UPDATE Recipe r SET r.views = r.views + 1 WHERE r.id = :id")
+    void incrementViews(@Param("id") Long id);
+    
+    // Lấy views (nếu muốn query riêng)
+    @Query("SELECT r.views FROM Recipe r WHERE r.id = :id")
+    Long getViews(@Param("id") Long id);
+
 
     // Chi lay scope, status, userId de check quyen
     @Query("SELECT r.scope AS scope, r.status AS status, r.user.id AS userId FROM Recipe r WHERE r.id = :recipeId")

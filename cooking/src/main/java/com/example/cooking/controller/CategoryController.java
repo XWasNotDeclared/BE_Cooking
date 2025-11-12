@@ -1,4 +1,4 @@
-package com.example.cooking.controller.admin;
+package com.example.cooking.controller;
 
 import com.example.cooking.common.ApiResponse;
 import com.example.cooking.dto.CategoryDTO;
@@ -7,13 +7,14 @@ import com.example.cooking.service.CategoryService;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity; 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/categories")
+@RequestMapping("/api/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 
@@ -29,13 +30,21 @@ public class CategoryController {
         return ApiResponse.ok(categoryService.getCategoryById(id));
     }
 
+    @GetMapping("/suggest")
+    public ResponseEntity<ApiResponse<List<CategoryDTO>>> autoCompleteCategories(@RequestParam String keyword) {
+        List<CategoryDTO> suggestions = categoryService.autocomplete(keyword);
+        return ApiResponse.ok(suggestions);
+    }
+
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@RequestBody CategoryRequestDTO category) {
         CategoryDTO created = categoryService.createCategory(category);
         return ApiResponse.ok(created);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(@PathVariable Long id,
             @RequestBody CategoryRequestDTO category) {
         CategoryDTO updated = categoryService.updateCategory(id, category);
@@ -43,6 +52,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ApiResponse.ok("Đã thực hiện");
@@ -50,6 +60,7 @@ public class CategoryController {
     
 
     @PostMapping("/add-batch")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<CategoryDTO>>> createCategories(
             @RequestBody List<CategoryRequestDTO> categories) {
         List<CategoryDTO> createdCategories = categoryService.createCategories(categories);

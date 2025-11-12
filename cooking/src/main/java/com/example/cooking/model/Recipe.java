@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@EqualsAndHashCode(exclude = {"steps","recipeIngredients","categories","tags"})
+@EqualsAndHashCode(exclude = {"views","steps","recipeIngredients","categories","tags"})
 @AllArgsConstructor
 @NoArgsConstructor
 @Table (name="recipes")
@@ -63,10 +63,6 @@ public class Recipe {
     @Enumerated(EnumType.STRING)
     private Difficulty difficulty;
 
-    @Column(name= "scope", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Scope scope;
-
     @Column(name= "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -77,9 +73,16 @@ public class Recipe {
     @Column(name= "image_url", nullable = true)
     private String imageUrl;
 
+    @Column(name = "views", nullable = false)
+    private Long views = 0L;
+
     @Column(name= "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @Column(name= "scope", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Scope scope;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable=false)

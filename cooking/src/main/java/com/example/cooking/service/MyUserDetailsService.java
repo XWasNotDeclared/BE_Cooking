@@ -11,7 +11,6 @@ import com.example.cooking.repository.UserRepository;
 import com.example.cooking.security.MyUserDetails;
 
 import java.util.List;
-import java.util.Optional;
 // import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,23 +28,27 @@ public class MyUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // Implement your user loading logic here
         // For example, fetch user from database and return UserDetails object
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            throw new UsernameNotFoundException("User not found with username: " + email);
-        }
-        User u = user.get();
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+
+            // Chuyển RoleEntity sang GrantedAuthority
+        List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
+            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+            .toList();  
+
         return new MyUserDetails(
-            u.getId(),
-            u.getEmail(),
-            u.getUsername(),
-            u.getPassword(),
-            u.getDob(),
-            u.getBio(),
-            u.getAvatarUrl(),
-            u.getCreatedAt(),
-            u.getLastLogin(),
-            u.getStatus(),
-                List.of(new SimpleGrantedAuthority(u.getRoles().name())));
+            user.getId(),
+            user.getEmail(),
+            user.getUsername(),
+            user.getPassword(),
+            user.getDob(),
+            user.getBio(),
+            user.getAvatarUrl(),
+            user.getCreatedAt(),
+            user.getLastLogin(),
+            user.getStatus(),
+            authorities);
     }
 
 }

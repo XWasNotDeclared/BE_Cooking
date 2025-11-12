@@ -1,6 +1,7 @@
 package com.example.cooking.controller.pub;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -33,11 +34,18 @@ public class AuthController {
     private final UserService userService;
     private final AuthService authService;
 
-    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/register/user", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<String>> addNewUser(@Valid @ModelAttribute RegisterRequest registerRequest) {
-        Long uid = userService.addUser(registerRequest, registerRequest.getAvatar());
+        Long uid = userService.addUser(registerRequest);
         return ApiResponse.ok("User added successfully with ID: " + uid);
     }
+
+    @PostMapping(value = "/register/chef", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<String>> addNewChef(@Valid @ModelAttribute RegisterRequest registerRequest) {
+        Long uid = userService.addChef(registerRequest);
+        return ApiResponse.ok("Chef added successfully with ID: " + uid);
+    }
+
 
     @GetMapping("/health")
     public ResponseEntity<ApiResponse<String>> welcome() {

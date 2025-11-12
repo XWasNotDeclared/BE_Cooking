@@ -9,54 +9,148 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.cooking.common.enums.ImageType;
 import com.example.cooking.config.UploadProperties;
 import com.example.cooking.exception.CustomException;
+import com.example.cooking.service.UploadFileService;
 
 import lombok.RequiredArgsConstructor;
-import com.example.cooking.service.UploadFileService;
+
 @Service
 @RequiredArgsConstructor
 public class LocalFileUploadService implements UploadFileService {
 
     private final UploadProperties uploadProperties;
 
+    /**
+     * Lưu file theo type (avatar, recipe, step, temp)
+     * @param file MultipartFile cần lưu
+     * @param type Loại file / folder con: avatar, recipe, step, temp
+     * @return đường dẫn truy cập
+     */
     @Override
-    public String saveFile(MultipartFile file) {
+    public String saveFile(MultipartFile file, ImageType type) {
         if (file == null || file.isEmpty()) {
             return null;
         }
         try {
-            Path uploadPath = Paths.get(System.getProperty("user.dir"), uploadProperties.getAvatar());
+            String folder = getFolderByType(type);
+            Path uploadPath = Paths.get(System.getProperty("user.dir"), folder);
             Files.createDirectories(uploadPath);
 
-            // Chuẩn hóa tên file: loại bỏ khoảng trắng, ký tự đặc biệt
             String originalFilename = file.getOriginalFilename();
             String safeFileName = sanitizeFileName(originalFilename);
 
-            // Tạo tên file mới với UUID để tránh trùng lặp
             String fileName = UUID.randomUUID() + "_" + safeFileName;
             Path filePath = uploadPath.resolve(fileName);
 
-            // Lưu file
             file.transferTo(filePath.toFile());
 
-            // Trả về đường dẫn truy cập
-            return "/" + uploadProperties.getAvatar() + "/" + fileName;
+            return "/" + folder + "/" + fileName;
+        } catch (IOException e) {
+            throw new CustomException("Fail to store file " + file.getOriginalFilename());
+        }
+    }
+
+
+    /**
+     * Lưu file tạm (temp) theo type gốc
+     * VD: /uploads/temp/avatars/uuid.jpg
+     */
+    @Override
+    public String saveTempFile(MultipartFile file, ImageType type) {
+        if (file == null || file.isEmpty()) return null;
+
+        try {
+            // Lưu vào temp/type folder
+            String folder = getTempFolderByType(type);
+            Path uploadPath = Paths.get(System.getProperty("user.dir"), folder);
+            Files.createDirectories(uploadPath);
+
+            String originalFilename = file.getOriginalFilename();
+            String safeFileName = sanitizeFileName(originalFilename);
+
+            String fileName = UUID.randomUUID() + "_" + safeFileName;
+            Path filePath = uploadPath.resolve(fileName);
+
+            file.transferTo(filePath.toFile());
+
+            return "/" + folder + "/" + fileName;
         } catch (IOException e) {
             throw new CustomException("Fail to store file " + file.getOriginalFilename());
         }
     }
 
     /**
-     * Hàm chuẩn hóa tên file: bỏ khoảng trắng, ký tự đặc biệt, chỉ giữ chữ, số, dấu gạch ngang, dấu chấm
+     * Move file từ temp sang folder chính dựa vào folder con trong temp path
+     * VD: /uploads/temp/avatars/uuid.jpg -> /uploads/avatars/uuid.jpg
+     */
+    @Override
+    public String moveFileFromTempToFinal(String tempFilePath) {
+        try {
+            if (tempFilePath == null || tempFilePath.isEmpty()) return null;
+
+            Path sourcePath = Paths.get(System.getProperty("user.dir"), tempFilePath.replaceFirst("/", ""));
+            if (!Files.exists(sourcePath)) {
+                throw new CustomException("Temp file not found: " + tempFilePath);
+            }
+
+            // Lấy folder con trong temp để xác định type
+            Path tempFolder = sourcePath.getParent(); // .../uploads/temp/avatars
+            String typeFolderName = tempFolder.getFileName().toString(); // avatars, recipes, steps
+
+            ImageType originalType;
+            switch (typeFolderName.toLowerCase()) {
+                case "avatars": originalType = ImageType.AVATAR; break;
+                case "recipes": originalType = ImageType.RECIPE; break;
+                case "steps":  originalType = ImageType.STEP; break;
+                default: throw new CustomException("Unknown type folder in temp: " + typeFolderName);
+            }
+
+            String targetFolder = getFolderByType(originalType);
+            Path targetDir = Paths.get(System.getProperty("user.dir"), targetFolder);
+            Files.createDirectories(targetDir);
+
+            Path targetPath = targetDir.resolve(sourcePath.getFileName());
+            Files.move(sourcePath, targetPath);
+
+            return "/" + targetFolder + "/" + sourcePath.getFileName().toString();
+        } catch (IOException e) {
+            throw new CustomException("Failed to move file from temp: " + tempFilePath);
+        }
+    }
+
+    /**
+     * Xác định folder lưu theo type
+     */
+    private String getFolderByType(ImageType type) {
+        if (type == null) return uploadProperties.getTemp();
+        switch (type) {
+            case AVATAR: return uploadProperties.getAvatar();
+            case RECIPE:   return uploadProperties.getRecipe();
+            case STEP:   return uploadProperties.getStep();
+            case TEMP:
+            default:     return uploadProperties.getTemp();
+        }
+    }
+
+    private String getTempFolderByType(ImageType type) {
+        if (type == null) type = ImageType.TEMP;
+        switch (type) {
+            case AVATAR: return uploadProperties.getTemp() + "/avatars";
+            case RECIPE:   return uploadProperties.getTemp() + "/recipes";
+            case STEP:   return uploadProperties.getTemp() + "/steps";
+            case TEMP:
+            default:     return uploadProperties.getTemp() + "/others";
+        }
+    }
+
+    /**
+     * Chuẩn hóa tên file: bỏ khoảng trắng, ký tự đặc biệt
      */
     private String sanitizeFileName(String fileName) {
-        if (fileName == null) {
-            return "file";
-        }
-        // Thay khoảng trắng bằng gạch dưới
+        if (fileName == null) return "file";
         fileName = fileName.trim().replaceAll("\\s+", "_");
-        // Loại bỏ các ký tự đặc biệt không an toàn
         fileName = fileName.replaceAll("[^a-zA-Z0-9._-]", "");
         return fileName;
     }
