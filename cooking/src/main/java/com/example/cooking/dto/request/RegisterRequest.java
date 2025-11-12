@@ -29,6 +29,6 @@ public class RegisterRequest {
 
     private String bio;
     private LocalDate dob;
-    @Schema(type = "string", format = "binary", description = "Avatar của user")
-    private MultipartFile avatar;
+    @Schema(description = "Avatar của user", example = "")
+    private MultipartFile avatarUrl;
 }

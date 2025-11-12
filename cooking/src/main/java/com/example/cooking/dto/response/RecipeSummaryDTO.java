@@ -40,6 +40,8 @@ public class RecipeSummaryDTO {
 
     private Status status;
 
+    private Long views = 1L;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

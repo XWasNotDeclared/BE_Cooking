@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -26,6 +27,7 @@ import com.example.cooking.security.filter.JwtAuthFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
@@ -45,10 +47,14 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS with custom configuration
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll() // Allow unauthenticated access to /auth endpoints
+                        .requestMatchers("/api/upload/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/public/**").permitAll() // Allow unauthenticated access to GET /recipes
                         .requestMatchers("/v3/api-docs/**","/swagger-ui/**").permitAll()
                         .requestMatchers("/static_resource/public/upload/**").permitAll()
-                        .requestMatchers("/user/**").hasRole("USER")
+                        .requestMatchers("/api/user/**").hasRole("USER")
+                        .requestMatchers("/api/recipes/**").hasRole("USER")
+                        .requestMatchers("/api/categories/**").hasRole("USER")
+                        .requestMatchers("/api/collections/**").hasRole("USER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // All other endpoints require authentication
                         //.anyRequest().authenticated() // All other requests require authentication

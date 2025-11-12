@@ -1,4 +1,4 @@
-package com.example.cooking.controller.user;
+package com.example.cooking.controller;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

@@ -1,4 +1,4 @@
-package com.example.cooking.controller.user;
+package com.example.cooking.controller;
 
 import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;

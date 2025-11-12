@@ -30,18 +30,18 @@ public abstract class UserMapper {
     @Mapping(target = "avatarUrl", ignore = true)
     public abstract User toUser (RegisterRequest entity);
 
-    // @Mapping(target = "id", ignore = true)
-    // @Mapping(target = "username", ignore = true)
-    @Mapping(target = "password", ignore = true)
-    // @Mapping(target = "createdAt", ignore = true)
-    // @Mapping(target = "dob", ignore = true)
-    // @Mapping(target = "bio", ignore = true)
-    // @Mapping(target = "lastLogin", ignore = true)
-    @Mapping(target = "recipes", ignore = true)
-    @Mapping(target = "roles", ignore = true)
-    @Mapping(target = "username", source = "myUserName")
-    @Mapping(target = "status", ignore = true)
-    public abstract User toUser (MyUserDetails entity);
+    // // @Mapping(target = "id", ignore = true)
+    // // @Mapping(target = "username", ignore = true)
+    // @Mapping(target = "password", ignore = true)
+    // // @Mapping(target = "createdAt", ignore = true)
+    // // @Mapping(target = "dob", ignore = true)
+    // // @Mapping(target = "bio", ignore = true)
+    // // @Mapping(target = "lastLogin", ignore = true)
+    // @Mapping(target = "recipes", ignore = true)
+    // @Mapping(target = "roles", ignore = true)
+    // @Mapping(target = "username", source = "myUserName")
+    // @Mapping(target = "status", ignore = true)
+    // public abstract User toUser (MyUserDetails entity);
 
 
     public abstract UserDTO toUserDTO (User entity);

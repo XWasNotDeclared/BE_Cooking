@@ -37,7 +37,9 @@ public class RecipeDetailResponse {
     private LocalDateTime updatedAt;
 
     private String imageUrl;
-    
+
+    private Long views = 1L;
+
     private Scope scope;
     private Status status;
     private UserDTO user;

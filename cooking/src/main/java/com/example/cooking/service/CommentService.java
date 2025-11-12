@@ -168,7 +168,7 @@ public class CommentService {
 
     @Transactional
     public void deleteComment(Long commentId, MyUserDetails currentUser) {
-        // WARN: Lưu ý, vẫn delete được nếu không có quyền xem recipe
+        //TODO:  WARN: Lưu ý, vẫn delete được nếu không có quyền xem recipe
         // Lấy thông tin người dùng hiện tại
         User user = userRepository.getReferenceById(currentUser.getId());
         Comment comment = commentRepository.findById(commentId)

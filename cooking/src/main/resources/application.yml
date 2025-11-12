@@ -26,8 +26,8 @@ spring:
 
   jpa:
     hibernate:
-      # ddl-auto: update
-      ddl-auto: create
+      ddl-auto: update
+      # ddl-auto: create
     show-sql: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: true #Test thoi ti tat di nhe mac dinh la true
@@ -49,9 +49,14 @@ app:
     password: admin12345
     email: admine
     dob: 1990-01-01
-    roles: ROLE_ADMIN
+    roles: 
+      - ADMIN
+      - USER
+      - CHEF
   upload:
     dir:
       avatar: static_resource/public/upload/avatars
-  # static-base-url: http://localhost:8080
+      recipe: static_resource/public/upload/recipes
+      step: static_resource/public/upload/steps
+      temp: static_resource/public/upload/temp
   static-base-url: http://192.168.1.5:8080

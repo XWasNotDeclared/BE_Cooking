@@ -1,4 +1,4 @@
-package com.example.cooking.controller.pub;
+package com.example.cooking.controller;
 
 import java.util.List;
 
@@ -63,5 +63,11 @@ public class TagController {
     public ResponseEntity<ApiResponse<String>> deleteTag(@PathVariable Long id) {
         tagService.deleteTag(id);
         return ApiResponse.ok("Đã thực hiện");
+    }
+
+    @GetMapping("/suggest")
+    public ResponseEntity<ApiResponse<List<TagDTO>>> autoCompleteTags(@RequestParam String keyword) {
+        List<TagDTO> suggestions = tagService.autocomplete(keyword);
+        return ApiResponse.ok(suggestions);
     }
 }
