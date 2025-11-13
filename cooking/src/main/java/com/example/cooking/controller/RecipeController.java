@@ -2,7 +2,6 @@ package com.example.cooking.controller;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -74,7 +73,7 @@ public class RecipeController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        PageDTO<RecipeSummaryDTO> recipes = recipeService.getMyRecipes(currentUser, pageable);
+        PageDTO<RecipeSummaryDTO> recipes = recipeService.getMyLikedRecipes(currentUser, pageable);
         return ApiResponse.ok(recipes);
     }
     /**
@@ -87,54 +86,92 @@ public class RecipeController {
      * - Đã bị từ chối:    ?status=REJECTED
      * - Tìm "phở":        ?keyword=phở
      */
-    @GetMapping
-    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getMyRecipes(
+    // 🔹 Endpoint lọc linh hoạt
+    @GetMapping("/my-recipes/filter")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getMyRecipes(
             @AuthenticationPrincipal MyUserDetails currentUser,
             @RequestParam(required = false) Status status,
             @RequestParam(required = false) Scope scope,
             @RequestParam(required = false) String keyword,
-            @PageableDefault(size = 12, sort = "updatedAt", direction = Sort.Direction.DESC)
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "views") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Pageable pageable = createPageable(page, size, sortBy, direction);
 
         PageDTO<RecipeSummaryDTO> result = recipeService.getMyRecipes(
                 currentUser.getId(), status, scope, keyword, pageable);
 
-        return ResponseEntity.ok(result);
+        return ApiResponse.ok(result);
     }
 
-    // Các endpoint nhanh (1 click)
-    @GetMapping("/pending")
-    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getPending(
+    // 🔹 Các endpoint nhanh (tự động dùng sort mặc định là views DESC)
+    @GetMapping("/my-recipes/filter/pending")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getPending(
             @AuthenticationPrincipal MyUserDetails user,
-            @PageableDefault(size = 12) Pageable p) {
-        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), Status.PENDING, null, null, p));
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "views") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Pageable pageable = createPageable(page, size, sortBy, direction);
+        return ApiResponse.ok(recipeService.getMyRecipes(user.getId(), Status.PENDING, null, null, pageable));
     }
 
-    @GetMapping("/approved")
-    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getApproved(
+    @GetMapping("/my-recipes/filter/approved")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getApproved(
             @AuthenticationPrincipal MyUserDetails user,
-            @PageableDefault(size = 12) Pageable p) {
-        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), Status.APPROVED, null, null, p));
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "views") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Pageable pageable = createPageable(page, size, sortBy, direction);
+        return ApiResponse.ok(recipeService.getMyRecipes(user.getId(), Status.APPROVED, null, null, pageable));
     }
 
-    @GetMapping("/rejected")
-    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getRejected(
+    @GetMapping("/my-recipes/filter/rejected")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getRejected(
             @AuthenticationPrincipal MyUserDetails user,
-            @PageableDefault(size = 12) Pageable p) {
-        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), Status.REJECTED, null, null, p));
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "views") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Pageable pageable = createPageable(page, size, sortBy, direction);
+        return ApiResponse.ok(recipeService.getMyRecipes(user.getId(), Status.REJECTED, null, null, pageable));
     }
 
-    @GetMapping("/drafts")
-    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getDrafts(
+    @GetMapping("/my-recipes/filter/drafts")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getDrafts(
             @AuthenticationPrincipal MyUserDetails user,
-            @PageableDefault(size = 12) Pageable p) {
-        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), null, Scope.DRAFT, null, p));
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "views") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Pageable pageable = createPageable(page, size, sortBy, direction);
+        return ApiResponse.ok(recipeService.getMyRecipes(user.getId(), null, Scope.DRAFT, null, pageable));
     }
 
-    @GetMapping("/public")
-    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getPublic(
+    @GetMapping("/my-recipes/filter/public")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getPublic(
             @AuthenticationPrincipal MyUserDetails user,
-            @PageableDefault(size = 12) Pageable p) {
-        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), Status.APPROVED, Scope.PUBLIC, null, p));
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "views") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Pageable pageable = createPageable(page, size, sortBy, direction);
+        return ApiResponse.ok(recipeService.getMyRecipes(user.getId(), Status.APPROVED, Scope.PUBLIC, null, pageable));
+    }
+
+    // Hàm tiện ích để tạo Pageable với sort động
+    private Pageable createPageable(int page, int size, String sortBy, String direction) {
+        Sort sort = direction.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        return PageRequest.of(page, size, sort);
     }
 }

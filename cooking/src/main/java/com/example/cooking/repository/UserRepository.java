@@ -33,5 +33,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT f.follower FROM UserFollow f WHERE f.followed.id = :userId")
     Page<User> findFollowerUsers(Long userId, Pageable pageable);
 
+    // //nhóm theo số món
+    // @Query("SELECT u.id AS userId, u.username AS username, COUNT(r.id) AS recipeCount " +
+    //        "FROM User u LEFT JOIN u.recipes r " +
+    //        "GROUP BY u.id, u.username " +
+    //        "ORDER BY COUNT(r.id) DESC")
+    // Page<UserRecipeCountProjection> findTopChefs(Pageable pageable);
 
 }

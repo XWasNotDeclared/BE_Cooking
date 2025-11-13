@@ -1,7 +1,9 @@
 package com.example.cooking.service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -19,6 +21,7 @@ import com.example.cooking.dto.mapper.RecipeMapper;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.request.StepRequestDTO;
 import com.example.cooking.dto.response.RecipeDetailResponse;
+import com.example.cooking.dto.response.RecipeStatisticsDTO;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.event.RecipeUpdatedEvent;
 import com.example.cooking.exception.CustomException;
@@ -179,6 +182,7 @@ public class RecipeService {
     }
 
     ///////////////////////////////
+    /// TODO: UTest hàm này và hàm con
     public PageDTO<RecipeSummaryDTO> getMyRecipes(
             Long currentUserId,
             Status status,
@@ -206,7 +210,99 @@ public class RecipeService {
     }
 
     ///////////////////
+    /// TODO: UTest hàm này và hàm con
+    public PageDTO<RecipeSummaryDTO> getAllRecipesForAdmin(
+            Long currentUserId,
+            Status status,
+            Scope scope,
+            String keyword,
+            Pageable pageable) {
 
+        Specification<Recipe> spec = Specification.allOf(
+                RecipeSpecs.hasStatus(status),
+                RecipeSpecs.hasScope(scope),
+                RecipeSpecs.titleContains(keyword),
+                RecipeSpecs.isNotDeleted());
+
+        Page<Recipe> page = recipeRepository.findAll(spec, pageable);
+
+        if (page.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+
+        List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(page.getContent());
+        dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, currentUserId);
+
+        return new PageDTO<>(page, dtos);
+    }
+
+    ///// thống kê cho admin////////////
+    ///TODO: cânn nhắc chuyển sang service riêng cho thống kê
+    public RecipeStatisticsDTO getRecipeStatistics() {
+        Long totalRecipes = recipeRepository.countAllRecipes();
+        Long totalViews = recipeRepository.countTotalViews();
+
+        Map<String, Long> byStatus = recipeRepository.countByStatus().stream()
+                .collect(Collectors.toMap(
+                        arr -> arr[0].toString(),
+                        arr -> (Long) arr[1]));
+
+        Map<String, Long> byDifficulty = recipeRepository.countByDifficulty().stream()
+                .collect(Collectors.toMap(
+                        arr -> arr[0].toString(),
+                        arr -> (Long) arr[1]));
+
+        Map<String, Long> byScope = recipeRepository.countByScope().stream()
+                .collect(Collectors.toMap(
+                        arr -> arr[0].toString(),
+                        arr -> (Long) arr[1]));
+
+        Long createdLast7Days = recipeRepository.countCreatedSince(LocalDateTime.now().minusDays(7));
+
+        return new RecipeStatisticsDTO(
+                totalRecipes,
+                totalViews != null ? totalViews : 0L,
+                byStatus,
+                byDifficulty,
+                byScope,
+                createdLast7Days);
+    }
+    /////////thống kê cho chef///////////
+    //TODO: cânn nhắc chuyển sang service riêng cho thống kê
+    public RecipeStatisticsDTO getStatisticsForUser(Long userId) {
+        Long totalRecipes = recipeRepository.countAllByUser(userId);
+        Long totalViews = recipeRepository.countTotalViewsByUser(userId);
+
+        Map<String, Long> byStatus = recipeRepository.countByStatusForUser(userId).stream()
+                .collect(Collectors.toMap(
+                        arr -> arr[0].toString(),
+                        arr -> (Long) arr[1]
+                ));
+
+        Map<String, Long> byDifficulty = recipeRepository.countByDifficultyForUser(userId).stream()
+                .collect(Collectors.toMap(
+                        arr -> arr[0].toString(),
+                        arr -> (Long) arr[1]
+                ));
+
+        Map<String, Long> byScope = recipeRepository.countByScopeForUser(userId).stream()
+                .collect(Collectors.toMap(
+                        arr -> arr[0].toString(),
+                        arr -> (Long) arr[1]
+                ));
+
+        Long createdLast7Days = recipeRepository.countCreatedSinceForUser(userId, LocalDateTime.now().minusDays(7));
+
+        return new RecipeStatisticsDTO(
+                totalRecipes,
+                totalViews != null ? totalViews : 0L,
+                byStatus,
+                byDifficulty,
+                byScope,
+                createdLast7Days
+        );
+    }
+//////////////
     public Recipe getRecipeById(Long id) {// admin only
         // TODO: fix
         Recipe recipe = recipeRepository.findById(id)
