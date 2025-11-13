@@ -1,5 +1,6 @@
 package com.example.cooking.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -98,5 +99,44 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
             @Param("status") Status status,
             Pageable pageable
     );
+
+    ////////thong ke cho admin//////////
+    @Query("SELECT COUNT(r) FROM Recipe r")
+    Long countAllRecipes();
+
+    @Query("SELECT SUM(r.views) FROM Recipe r")
+    Long countTotalViews();
+
+    @Query("SELECT r.status, COUNT(r) FROM Recipe r GROUP BY r.status")
+    List<Object[]> countByStatus();
+
+    @Query("SELECT r.difficulty, COUNT(r) FROM Recipe r GROUP BY r.difficulty")
+    List<Object[]> countByDifficulty();
+
+    @Query("SELECT r.scope, COUNT(r) FROM Recipe r GROUP BY r.scope")
+    List<Object[]> countByScope();
+
+    @Query("SELECT COUNT(r) FROM Recipe r WHERE r.createdAt >= :fromDate")
+    Long countCreatedSince(LocalDateTime fromDate);
+    
+    ///////thống kê cho chef//////////
+    @Query("SELECT COUNT(r) FROM Recipe r WHERE r.user.id = :userId")
+    Long countAllByUser(@Param("userId") Long userId);
+
+    @Query("SELECT SUM(r.views) FROM Recipe r WHERE r.user.id = :userId")
+    Long countTotalViewsByUser(@Param("userId") Long userId);
+
+    @Query("SELECT r.status, COUNT(r) FROM Recipe r WHERE r.user.id = :userId GROUP BY r.status")
+    List<Object[]> countByStatusForUser(@Param("userId") Long userId);
+
+    @Query("SELECT r.difficulty, COUNT(r) FROM Recipe r WHERE r.user.id = :userId GROUP BY r.difficulty")
+    List<Object[]> countByDifficultyForUser(@Param("userId") Long userId);
+
+    @Query("SELECT r.scope, COUNT(r) FROM Recipe r WHERE r.user.id = :userId GROUP BY r.scope")
+    List<Object[]> countByScopeForUser(@Param("userId") Long userId);
+
+    @Query("SELECT COUNT(r) FROM Recipe r WHERE r.user.id = :userId AND r.createdAt >= :fromDate")
+    Long countCreatedSinceForUser(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate);
+
 
 }

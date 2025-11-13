@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.cooking.common.ApiResponse;
 import com.example.cooking.dto.UserDTO;
+import com.example.cooking.dto.response.RecipeStatisticsDTO;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.AuthService;
+import com.example.cooking.service.RecipeService;
 import com.example.cooking.service.UserService;
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final RecipeService recipeService;
     private final AuthService authService;
 
     @GetMapping("/welcome")
@@ -34,5 +37,12 @@ public class UserController {
         UserDTO user = userService.getUserById(currentUser.getId());
         //TODO: Doi kieu tra ve cho bao mat
         return ApiResponse.ok(user);
+    }
+    @GetMapping("/statistics")
+    public ResponseEntity<ApiResponse<RecipeStatisticsDTO>> getMyRecipeStatistics(
+            @AuthenticationPrincipal MyUserDetails currentUser) {
+
+        RecipeStatisticsDTO stats = recipeService.getStatisticsForUser(currentUser.getId());
+        return ApiResponse.ok(stats);
     }
 }

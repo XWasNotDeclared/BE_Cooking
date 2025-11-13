@@ -53,9 +53,10 @@ public class TagController {
         return ApiResponse.ok(tagService.getTagBySlug(slug));
     }
 
+    //TODO: chia page
     @GetMapping
-    public ResponseEntity<List<TagDTO>> getAllTags() {
-        return ResponseEntity.ok(tagService.getAllTags());
+    public ResponseEntity<ApiResponse<List<TagDTO>>> getAllTags() {
+        return ApiResponse.ok(tagService.getAllTags());
     }
 
     @DeleteMapping("/{id}")
