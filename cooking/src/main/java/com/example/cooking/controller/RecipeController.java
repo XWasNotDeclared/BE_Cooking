@@ -2,6 +2,7 @@ package com.example.cooking.controller;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.common.enums.Scope;
+import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
@@ -16,6 +18,7 @@ import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.RecipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 
 @RestController
 @RequestMapping("/api/recipes")
@@ -61,5 +64,77 @@ public class RecipeController {
         Pageable pageable = PageRequest.of(page, size);
         PageDTO<RecipeSummaryDTO> recipes = recipeService.getMyRecipes(currentUser, pageable);
         return ApiResponse.ok(recipes);
+    }
+
+    @GetMapping("/liked")
+    @PreAuthorize("hasRole('CHEF')")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getMyLikedRecipes(
+            @AuthenticationPrincipal MyUserDetails currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PageDTO<RecipeSummaryDTO> recipes = recipeService.getMyRecipes(currentUser, pageable);
+        return ApiResponse.ok(recipes);
+    }
+    /**
+     * Lấy danh sách công thức của tôi
+     * Hỗ trợ lọc: status, scope, keyword
+     * Ví dụ:
+     * - Đang chờ duyệt:   ?status=PENDING
+     * - Công khai:        ?scope=PUBLIC
+     * - Nháp:             ?scope=DRAFT
+     * - Đã bị từ chối:    ?status=REJECTED
+     * - Tìm "phở":        ?keyword=phở
+     */
+    @GetMapping
+    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getMyRecipes(
+            @AuthenticationPrincipal MyUserDetails currentUser,
+            @RequestParam(required = false) Status status,
+            @RequestParam(required = false) Scope scope,
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 12, sort = "updatedAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+
+        PageDTO<RecipeSummaryDTO> result = recipeService.getMyRecipes(
+                currentUser.getId(), status, scope, keyword, pageable);
+
+        return ResponseEntity.ok(result);
+    }
+
+    // Các endpoint nhanh (1 click)
+    @GetMapping("/pending")
+    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getPending(
+            @AuthenticationPrincipal MyUserDetails user,
+            @PageableDefault(size = 12) Pageable p) {
+        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), Status.PENDING, null, null, p));
+    }
+
+    @GetMapping("/approved")
+    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getApproved(
+            @AuthenticationPrincipal MyUserDetails user,
+            @PageableDefault(size = 12) Pageable p) {
+        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), Status.APPROVED, null, null, p));
+    }
+
+    @GetMapping("/rejected")
+    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getRejected(
+            @AuthenticationPrincipal MyUserDetails user,
+            @PageableDefault(size = 12) Pageable p) {
+        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), Status.REJECTED, null, null, p));
+    }
+
+    @GetMapping("/drafts")
+    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getDrafts(
+            @AuthenticationPrincipal MyUserDetails user,
+            @PageableDefault(size = 12) Pageable p) {
+        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), null, Scope.DRAFT, null, p));
+    }
+
+    @GetMapping("/public")
+    public ResponseEntity<PageDTO<RecipeSummaryDTO>> getPublic(
+            @AuthenticationPrincipal MyUserDetails user,
+            @PageableDefault(size = 12) Pageable p) {
+        return ResponseEntity.ok(recipeService.getMyRecipes(user.getId(), Status.APPROVED, Scope.PUBLIC, null, p));
     }
 }
