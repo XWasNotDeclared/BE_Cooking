@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.common.enums.Difficulty;
-import com.example.cooking.common.enums.ImageType;
+import com.example.cooking.common.enums.FileType;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.mapper.RecipeMapper;
@@ -56,7 +56,7 @@ public class RecipeService {
         Recipe recipe = recipeMapper.toRecipe(newRecipeRequest);
         // thieu anh chinh va steps
         if (!(newRecipeRequest.getImage() == null || newRecipeRequest.getImage().isEmpty())) {
-            String mainImageUrl = uploadFileService.saveFile(newRecipeRequest.getImage(), ImageType.RECIPE);
+            String mainImageUrl = uploadFileService.saveFile(newRecipeRequest.getImage(), FileType.RECIPE);
             recipe.setImageUrl(mainImageUrl);
         } else
             recipe.setImageUrl("/static_resource/public/upload/avatars/avatar-holder.png");
@@ -71,7 +71,7 @@ public class RecipeService {
             step.setRecipe(recipe); // Thiết lập mối quan hệ với Recipe
             if (!(stepRequestDTO.getImages() == null || stepRequestDTO.getImages().isEmpty())) {
                 for (MultipartFile imageFile : stepRequestDTO.getImages()) {
-                    String imageUrl = uploadFileService.saveFile(imageFile, ImageType.STEP);
+                    String imageUrl = uploadFileService.saveFile(imageFile, FileType.STEP);
                     step.getImageUrls().add(imageUrl);
                 }
             }
@@ -168,6 +168,25 @@ public class RecipeService {
         return new PageDTO<>(recipePage, recipeSummaries);
     }
 
+    // holder //
+    public PageDTO<RecipeSummaryDTO> getPlaceHolder(MyUserDetails currentUser, Pageable pageable) {
+
+        // Query JPA thật, không điều kiện
+        Page<Recipe> recipePage = recipeRepository.findAll(pageable);
+
+        if (recipePage.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+
+        // Map sang DTO
+        List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(recipePage.getContent());
+
+        // Enrich như thật để controller hoạt động y hệt các endpoint khác
+        dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, currentUser.getId());
+
+        return new PageDTO<>(recipePage, dtos);
+    }
+
     //////////////////////////////////////////
     public PageDTO<RecipeSummaryDTO> getMyLikedRecipes(MyUserDetails currentUser, Pageable pageable) {
         Page<Recipe> recipePage = likeRepository.findRecipesByUserId(currentUser.getId(), pageable);
@@ -237,7 +256,7 @@ public class RecipeService {
     }
 
     ///// thống kê cho admin////////////
-    ///TODO: cânn nhắc chuyển sang service riêng cho thống kê
+    /// TODO: cânn nhắc chuyển sang service riêng cho thống kê
     public RecipeStatisticsDTO getRecipeStatistics() {
         Long totalRecipes = recipeRepository.countAllRecipes();
         Long totalViews = recipeRepository.countTotalViews();
@@ -267,8 +286,9 @@ public class RecipeService {
                 byScope,
                 createdLast7Days);
     }
-    /////////thống kê cho chef///////////
-    //TODO: cânn nhắc chuyển sang service riêng cho thống kê
+
+    ///////// thống kê cho chef///////////
+    // TODO: cânn nhắc chuyển sang service riêng cho thống kê
     public RecipeStatisticsDTO getStatisticsForUser(Long userId) {
         Long totalRecipes = recipeRepository.countAllByUser(userId);
         Long totalViews = recipeRepository.countTotalViewsByUser(userId);
@@ -276,20 +296,17 @@ public class RecipeService {
         Map<String, Long> byStatus = recipeRepository.countByStatusForUser(userId).stream()
                 .collect(Collectors.toMap(
                         arr -> arr[0].toString(),
-                        arr -> (Long) arr[1]
-                ));
+                        arr -> (Long) arr[1]));
 
         Map<String, Long> byDifficulty = recipeRepository.countByDifficultyForUser(userId).stream()
                 .collect(Collectors.toMap(
                         arr -> arr[0].toString(),
-                        arr -> (Long) arr[1]
-                ));
+                        arr -> (Long) arr[1]));
 
         Map<String, Long> byScope = recipeRepository.countByScopeForUser(userId).stream()
                 .collect(Collectors.toMap(
                         arr -> arr[0].toString(),
-                        arr -> (Long) arr[1]
-                ));
+                        arr -> (Long) arr[1]));
 
         Long createdLast7Days = recipeRepository.countCreatedSinceForUser(userId, LocalDateTime.now().minusDays(7));
 
@@ -299,10 +316,10 @@ public class RecipeService {
                 byStatus,
                 byDifficulty,
                 byScope,
-                createdLast7Days
-        );
+                createdLast7Days);
     }
-//////////////
+
+    //////////////
     public Recipe getRecipeById(Long id) {// admin only
         // TODO: fix
         Recipe recipe = recipeRepository.findById(id)

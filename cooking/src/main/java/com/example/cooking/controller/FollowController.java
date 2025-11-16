@@ -34,6 +34,15 @@ public class FollowController {
         return ApiResponse.ok("Unfollowed successfully");
     }
 
+    //TODO: Sua lai holder
+    @GetMapping("/suggested")
+    public  ResponseEntity<ApiResponse<PageDTO<UserDTO>>> getSuggestedFollow(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ApiResponse.ok(followService.getPlaceHoder(pageable));
+    }
+
     @GetMapping("/users/{userId}/following")
     public  ResponseEntity<ApiResponse<PageDTO<UserDTO>>> getFollowing(@PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,

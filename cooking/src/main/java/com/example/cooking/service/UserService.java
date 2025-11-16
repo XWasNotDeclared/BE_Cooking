@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.cooking.common.enums.ImageType;
+import com.example.cooking.common.enums.FileType;
 import com.example.cooking.common.enums.UserStatus;
 import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.mapper.UserMapper;
@@ -45,7 +45,7 @@ public class UserService {
         // Xử lý avatar từ temp → folder chính
         MultipartFile avatarTempUrl = registerRequest.getAvatarUrl();
         if (avatarTempUrl != null && !avatarTempUrl.isEmpty()) {
-            String avatarUrl = uploadFileService.saveFile(avatarTempUrl,ImageType.AVATAR);
+            String avatarUrl = uploadFileService.saveFile(avatarTempUrl,FileType.AVATAR);
             user.setAvatarUrl(avatarUrl);
         } else {
             user.setAvatarUrl("/static_resource/public/upload/avatars/avatar_holder.png");
@@ -84,7 +84,7 @@ public class UserService {
         // Xử lý avatar từ temp → folder chính
         MultipartFile avatarTempUrl = registerRequest.getAvatarUrl();
         if (avatarTempUrl != null && !avatarTempUrl.isEmpty()) {
-            String avatarUrl = uploadFileService.saveFile(avatarTempUrl,ImageType.AVATAR);
+            String avatarUrl = uploadFileService.saveFile(avatarTempUrl,FileType.AVATAR);
             user.setAvatarUrl(avatarUrl);
         } else {
             user.setAvatarUrl("/static_resource/public/upload/avatars/avatar_holder.png");
