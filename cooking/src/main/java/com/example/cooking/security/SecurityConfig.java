@@ -73,13 +73,17 @@ public class SecurityConfig {
     //TODO: Fix
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // config.setAllowedOrigins(List.of("http://localhost:8081","http://localhost:3000/","http://127.0.0.1:5500")); // URL
-        config.setAllowedOrigins(List.of("*")); // URL
+        config.setAllowedOrigins(List.of("http://localhost:8081",
+                                            "http://localhost:3000/",
+                                            "http://127.0.0.1:5500",
+                                            // "http://127.0.0.1:3000",
+                                            "http://26.3.253.161:3000")); // URL
+        // config.setAllowedOrigins(List.of("*")); // URL
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         //TODO: ĐẶT LÀ TRUE NẾU Ở TRÊN KHÔNG PHẢI *
-        config.setAllowCredentials(true); 
+        // config.setAllowCredentials(true); 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

@@ -1,5 +1,7 @@
 package com.example.cooking.controller;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import com.example.cooking.service.RecipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @RestController
 @RequestMapping("/api/recipes")
@@ -64,6 +67,34 @@ public class RecipeController {
         PageDTO<RecipeSummaryDTO> recipes = recipeService.getMyRecipes(currentUser, pageable);
         return ApiResponse.ok(recipes);
     }
+
+    @GetMapping("/following-recipes")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getMyFollingRecipes(
+            @AuthenticationPrincipal MyUserDetails currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PageDTO<RecipeSummaryDTO> recipes = recipeService.getPlaceHolder(currentUser, pageable);
+        return ApiResponse.ok(recipes);
+    }
+
+    //TODO: khong truyen date thi de 7 ngay
+    @GetMapping("/top-like-recipes")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getTopLikeRecipes(
+            @AuthenticationPrincipal MyUserDetails currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PageDTO<RecipeSummaryDTO> recipes = recipeService.getPlaceHolder(currentUser, pageable);
+        return ApiResponse.ok(recipes);
+    }
+
 
     @GetMapping("/liked")
     @PreAuthorize("hasRole('CHEF')")

@@ -9,7 +9,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.cooking.common.enums.ImageType;
+import com.example.cooking.common.enums.FileType;
 import com.example.cooking.config.UploadProperties;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.service.UploadFileService;
@@ -29,7 +29,7 @@ public class LocalFileUploadService implements UploadFileService {
      * @return đường dẫn truy cập
      */
     @Override
-    public String saveFile(MultipartFile file, ImageType type) {
+    public String saveFile(MultipartFile file, FileType type) {
         if (file == null || file.isEmpty()) {
             return null;
         }
@@ -58,7 +58,7 @@ public class LocalFileUploadService implements UploadFileService {
      * VD: /uploads/temp/avatars/uuid.jpg
      */
     @Override
-    public String saveTempFile(MultipartFile file, ImageType type) {
+    public String saveTempFile(MultipartFile file, FileType type) {
         if (file == null || file.isEmpty()) return null;
 
         try {
@@ -99,11 +99,11 @@ public class LocalFileUploadService implements UploadFileService {
             Path tempFolder = sourcePath.getParent(); // .../uploads/temp/avatars
             String typeFolderName = tempFolder.getFileName().toString(); // avatars, recipes, steps
 
-            ImageType originalType;
+            FileType originalType;
             switch (typeFolderName.toLowerCase()) {
-                case "avatars": originalType = ImageType.AVATAR; break;
-                case "recipes": originalType = ImageType.RECIPE; break;
-                case "steps":  originalType = ImageType.STEP; break;
+                case "avatars": originalType = FileType.AVATAR; break;
+                case "recipes": originalType = FileType.RECIPE; break;
+                case "steps":  originalType = FileType.STEP; break;
                 default: throw new CustomException("Unknown type folder in temp: " + typeFolderName);
             }
 
@@ -123,7 +123,7 @@ public class LocalFileUploadService implements UploadFileService {
     /**
      * Xác định folder lưu theo type
      */
-    private String getFolderByType(ImageType type) {
+    private String getFolderByType(FileType type) {
         if (type == null) return uploadProperties.getTemp();
         switch (type) {
             case AVATAR: return uploadProperties.getAvatar();
@@ -134,8 +134,8 @@ public class LocalFileUploadService implements UploadFileService {
         }
     }
 
-    private String getTempFolderByType(ImageType type) {
-        if (type == null) type = ImageType.TEMP;
+    private String getTempFolderByType(FileType type) {
+        if (type == null) type = FileType.TEMP;
         switch (type) {
             case AVATAR: return uploadProperties.getTemp() + "/avatars";
             case RECIPE:   return uploadProperties.getTemp() + "/recipes";

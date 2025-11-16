@@ -73,6 +73,17 @@ public class FollowService {
         return new PageDTO<>(followingPage, following);
     }
 
+    //TODO: Xoa
+    // holer
+    public PageDTO<UserDTO> getPlaceHoder(Pageable pageable) {
+        Page<User> followingPage = userRepository.findAll(pageable);
+        if (followingPage.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+        List<UserDTO> following = userMapper.toUserDTOList(followingPage.getContent());
+        return new PageDTO<>(followingPage, following);
+    }
+
     public PageDTO<UserDTO> getFollowerUsers(Long userId, Pageable pageable) {
         Page<User> followersPage = userRepository.findFollowerUsers(userId, pageable);
         if (followersPage.isEmpty()) {

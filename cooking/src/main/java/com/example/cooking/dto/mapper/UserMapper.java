@@ -2,6 +2,8 @@ package com.example.cooking.dto.mapper;
 
 import java.util.List;
 
+import javax.management.relation.Role;
+
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,9 +14,8 @@ import com.example.cooking.config.AppProperties;
 import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.request.RegisterRequest;
 import com.example.cooking.model.User;
-import com.example.cooking.security.MyUserDetails;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {RoleMapper.class})
 public abstract class UserMapper {
 
         @Autowired
@@ -28,6 +29,7 @@ public abstract class UserMapper {
     @Mapping(target = "recipes", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "avatarUrl", ignore = true)
+    @Mapping(target = "refreshTokens", ignore = true)
     public abstract User toUser (RegisterRequest entity);
 
     // // @Mapping(target = "id", ignore = true)

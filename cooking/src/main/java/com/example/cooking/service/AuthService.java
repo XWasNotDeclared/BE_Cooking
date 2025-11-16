@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import com.example.cooking.dto.mapper.UserMapper;
 import com.example.cooking.dto.response.AccessToken;
 import com.example.cooking.dto.response.LoginResponse;
 import com.example.cooking.exception.CustomException;
@@ -19,6 +20,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final UserMapper userMapper;
 
     public LoginResponse handleLoginSuccess(String email) {
         User user = userRepository.findByEmail(email)
@@ -29,7 +31,7 @@ public class AuthService {
         String accessToken = jwtService.generateToken(email);
         String refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
-        return new LoginResponse(accessToken, refreshToken);
+        return new LoginResponse(accessToken, refreshToken, userMapper.toUserDTO(user));
     }
 
     public AccessToken handleRefresh(String refreshToken) {

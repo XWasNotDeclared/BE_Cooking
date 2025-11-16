@@ -1,8 +1,9 @@
 package com.example.cooking.common.enums;
 
-public enum ImageType {
+public enum FileType {
     AVATAR,     // Ảnh đại diện user
     RECIPE,       // Ảnh đại diện món ăn
     STEP,       // Ảnh từng bước của món ăn
+    RECIPEVIDEO, // Video món ăn
     TEMP        // Ảnh tạm, chưa được move vào folder chính
 }
