@@ -175,7 +175,8 @@ public class RecipeEnrichmentService {
                 projection.getCategoryId(),
                 projection.getCategoryName(),
                 projection.getCategorySlug(),
-                projection.getCategoryDescription());
+                projection.getCategoryDescription(),
+                projection.getCategoryImageUrl());
     }
 
     private TagDTO mapToTagDTO(RecipeTagProjection projection) {

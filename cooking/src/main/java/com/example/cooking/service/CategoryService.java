@@ -1,5 +1,6 @@
 package com.example.cooking.service;
 
+import com.example.cooking.common.enums.FileType;
 import com.example.cooking.dto.CategoryDTO;
 import com.example.cooking.dto.mapper.CategoryMapper;
 import com.example.cooking.dto.request.CategoryRequestDTO;
@@ -24,6 +25,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final UploadFileService uploadFileService;
 
     public List<CategoryDTO> getAllCategories() {
         List<CategoryDTO> categoryResponseDTOs = categoryMapper.toDTO(categoryRepository.findAll());
@@ -45,6 +47,11 @@ public class CategoryService {
         if (categoryRepository.existsByName(category.getName())) {
             throw new CustomException("Category with this name already exists");
         }
+        if (!(requestDTO.getImage() == null || requestDTO.getImage().isEmpty())) {
+            String imageUrl = uploadFileService.saveFile(requestDTO.getImage(), FileType.CATEGORYIMAGE);
+            category.setImageUrl(imageUrl);
+        } else
+            category.setImageUrl("/static_resource/public/upload/category_images/category-holder.png");
         return categoryMapper.toDTO(categoryRepository.save(category));
     }
 

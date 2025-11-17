@@ -155,6 +155,23 @@ public class RecipeService {
         return new PageDTO<>(recipePage, recipeSummaries);
     }
 
+    // Lay recipe theo category
+    public PageDTO<RecipeSummaryDTO> getRecipeByCategoryId(MyUserDetails currentUser, Long categoryId, Pageable pageable) {
+        Page<Recipe> recipePage = recipeRepository.findPublicApprovedByCategoryId(
+                categoryId,
+                Scope.PUBLIC,
+                Status.APPROVED,
+                pageable);
+
+        if (recipePage.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+        // basic infor
+        List<RecipeSummaryDTO> recipeSummaries = recipeMapper.toSummaryDTOList(recipePage.getContent());
+        recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
+        return new PageDTO<>(recipePage, recipeSummaries);
+    }
+
     //////////////////////////////////////////
     public PageDTO<RecipeSummaryDTO> getMyRecipes(MyUserDetails currentUser, Pageable pageable) {
         Page<Recipe> recipePage = recipeRepository.findByUserId(currentUser.getId(), pageable);

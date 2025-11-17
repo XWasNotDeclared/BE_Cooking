@@ -16,4 +16,7 @@ public class CategoryDTO {
     private String slug;
 
     private String description;
+    
+    private String imageUrl;
+
 }

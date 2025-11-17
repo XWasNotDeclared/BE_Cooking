@@ -68,7 +68,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
 
     // JPQL projection cho categories - type safe, chỉ fetch fields cần
     @Query("SELECT new com.example.cooking.dto.projection.RecipeCategoryProjection(" +
-            "r.id, c.id, c.name, c.slug, c.description) " +
+            "r.id, c.id, c.name, c.slug, c.description, c.imageUrl) " +
             "FROM Recipe r JOIN r.categories c WHERE r.id IN :recipeIds")
     List<RecipeCategoryProjection> findCategoriesByRecipeIds(@Param("recipeIds") Set<Long> recipeIds);
 
@@ -95,6 +95,20 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
         """)
     Page<Recipe> findPublicApprovedByTagId(
             @Param("tagId") Long tagId,
+            @Param("scope") Scope scope,
+            @Param("status") Status status,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT DISTINCT r FROM Recipe r
+        JOIN r.categories c
+        WHERE c.id = :categoryId
+          AND r.scope = :scope
+          AND r.status = :status
+        """)
+    Page<Recipe> findPublicApprovedByCategoryId(
+            @Param("categoryId") Long tagId,
             @Param("scope") Scope scope,
             @Param("status") Status status,
             Pageable pageable

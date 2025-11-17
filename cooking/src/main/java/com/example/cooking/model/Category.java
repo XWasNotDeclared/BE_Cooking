@@ -31,6 +31,9 @@ public class Category {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "image_url")
+    private String imageUrl;    
+
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<Recipe> recipes = new LinkedHashSet<>();
 

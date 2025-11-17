@@ -12,4 +12,5 @@ public class TagDTO {
     private String name;
 
     private String slug;
+    
 }
