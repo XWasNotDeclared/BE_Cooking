@@ -10,12 +10,14 @@ public class RecipeCategoryProjection {
     private String categoryName;
     private String categorySlug;
     private String categoryDescription;
+    private String categoryImageUrl;
     
-    public RecipeCategoryProjection(Long recipeId, Long categoryId, String categoryName, String categorySlug, String categoryDescription) {
+    public RecipeCategoryProjection(Long recipeId, Long categoryId, String categoryName, String categorySlug, String categoryDescription, String categoryImageUrl) {
         this.recipeId = recipeId;
         this.categoryId = categoryId;
         this.categoryName = categoryName;
         this.categorySlug = categorySlug;
         this.categoryDescription = categoryDescription;
+        this.categoryImageUrl = categoryImageUrl;
     }
 }

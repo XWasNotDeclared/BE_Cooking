@@ -129,6 +129,8 @@ public class LocalFileUploadService implements UploadFileService {
             case AVATAR: return uploadProperties.getAvatar();
             case RECIPE:   return uploadProperties.getRecipe();
             case STEP:   return uploadProperties.getStep();
+            case RECIPEVIDEO:   return uploadProperties.getRecipeVideo();
+            case CATEGORYIMAGE:   return uploadProperties.getCategoryImage();
             case TEMP:
             default:     return uploadProperties.getTemp();
         }

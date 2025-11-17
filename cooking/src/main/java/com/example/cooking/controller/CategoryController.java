@@ -1,14 +1,23 @@
 package com.example.cooking.controller;
 
 import com.example.cooking.common.ApiResponse;
+import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.CategoryDTO;
 import com.example.cooking.dto.request.CategoryRequestDTO;
+import com.example.cooking.dto.response.RecipeSummaryDTO;
+import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.CategoryService;
+import com.example.cooking.service.RecipeService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity; 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +28,7 @@ import java.util.List;
 public class CategoryController {
 
     private final CategoryService categoryService;
+    private final RecipeService recipeService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CategoryDTO>>> getAllCategories() {
@@ -30,15 +40,19 @@ public class CategoryController {
         return ApiResponse.ok(categoryService.getCategoryById(id));
     }
 
+    @Operation(
+        summary = "Gợi ý danh mục",
+        description = "API trả về danh sách gợi ý danh mục (Category) dựa trên từ khóa nhập vào."
+    )
     @GetMapping("/suggest")
     public ResponseEntity<ApiResponse<List<CategoryDTO>>> autoCompleteCategories(@RequestParam String keyword) {
         List<CategoryDTO> suggestions = categoryService.autocomplete(keyword);
         return ApiResponse.ok(suggestions);
     }
 
-    @PostMapping
+    @PostMapping(consumes = "multipart/form-data")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@RequestBody CategoryRequestDTO category) {
+    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@ModelAttribute CategoryRequestDTO category) {
         CategoryDTO created = categoryService.createCategory(category);
         return ApiResponse.ok(created);
     }
@@ -57,14 +71,27 @@ public class CategoryController {
         categoryService.deleteCategory(id);
         return ApiResponse.ok("Đã thực hiện");
     }
+
+    @Operation(
+    summary = "Lấy danh sách công thức theo category",
+    description = "API trả về danh sách công thức (Recipe) thuộc một danh mục (Category) theo phân trang."
+    )
+    @GetMapping("/{id}/recipes")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getRecipeByCategoryId(@AuthenticationPrincipal MyUserDetails currentUser,
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ApiResponse.ok(recipeService.getRecipeByCategoryId(currentUser,id, pageable));
+    }
     
 
-    @PostMapping("/add-batch")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<CategoryDTO>>> createCategories(
-            @RequestBody List<CategoryRequestDTO> categories) {
-        List<CategoryDTO> createdCategories = categoryService.createCategories(categories);
-        return ApiResponse.ok(createdCategories);
-    }
+    // @PostMapping("/add-batch")
+    // @PreAuthorize("hasRole('ADMIN')")
+    // public ResponseEntity<ApiResponse<List<CategoryDTO>>> createCategories(
+    //         @RequestBody List<CategoryRequestDTO> categories) {
+    //     List<CategoryDTO> createdCategories = categoryService.createCategories(categories);
+    //     return ApiResponse.ok(createdCategories);
+    // }
 
 }

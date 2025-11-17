@@ -21,7 +21,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> findAllByNameIn(Set<String> names);
 
-    @Query("SELECT new com.example.cooking.dto.CategoryDTO(c.id, c.name, c.slug, c.description) " +
+    @Query("SELECT new com.example.cooking.dto.CategoryDTO(c.id, c.name, c.slug, c.description, c.imageUrl) " +
             "FROM Category c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<CategoryDTO> searchToDTO(@Param("keyword") String keyword, Pageable pageable);
 }
