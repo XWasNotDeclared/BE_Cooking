@@ -2,6 +2,7 @@ package com.example.cooking.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,6 +39,15 @@ public class UserController {
         //TODO: Doi kieu tra ve cho bao mat
         return ApiResponse.ok(user);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserDTO>> getUserById(@PathVariable Long id) {
+
+        UserDTO user = userService.getUserById(id);
+        //TODO: Doi kieu tra ve cho bao mat
+        return ApiResponse.ok(user);
+    }
+
     @GetMapping("/statistics")
     public ResponseEntity<ApiResponse<RecipeStatisticsDTO>> getMyRecipeStatistics(
             @AuthenticationPrincipal MyUserDetails currentUser) {
