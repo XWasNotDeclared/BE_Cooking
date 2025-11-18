@@ -49,4 +49,8 @@ public class RecipeDetailResponse {
     private Set<TagDTO> tags = new LinkedHashSet<>();
     private Long likeCount;
     private Long saveCount;
+    //
+    private Long commentCount;
+    private Boolean likedByCurrentUser;
+    private Boolean savedByCurrentUser;
 }

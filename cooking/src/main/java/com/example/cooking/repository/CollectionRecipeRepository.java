@@ -51,4 +51,18 @@ public interface CollectionRecipeRepository extends JpaRepository<CollectionReci
             @Param("recipeIds") Set<Long> recipeIds,
             @Param("userId") Long userId);
 
+    @Query("""
+        SELECT
+            cr.recipe.id AS recipeId,
+            COUNT(cr.id) AS saveCount,
+            SUM(CASE WHEN cr.collection.user.id = :userId THEN 1 ELSE 0 END) > 0 AS savedByUser
+        FROM CollectionRecipe cr
+        WHERE cr.recipe.id = :recipeId
+        GROUP BY cr.recipe.id
+        """)
+    RecipeSavesProjection countSavesAndCheckUserSavedForRecipe(
+            @Param("recipeId") Long recipeId,
+            @Param("userId") Long userId);
+
+            
 }

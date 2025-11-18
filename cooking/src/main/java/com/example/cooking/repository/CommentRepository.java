@@ -50,4 +50,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
       """)
   List<CommentCountProjection> countCommentsByRecipeIds(@Param("recipeIds") Set<Long> recipeIds);
 
+  @Query("SELECT COUNT(c.id) FROM Comment c WHERE c.recipe.id = :recipeId")
+  Long countByRecipeId(Long recipeId);
+
 }

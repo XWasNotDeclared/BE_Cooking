@@ -13,7 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
+import com.example.cooking.model.Recipe;
 import com.example.cooking.dto.projection.CommentCountProjection;
 import com.example.cooking.dto.projection.RecipeCategoryProjection;
 import com.example.cooking.dto.projection.RecipeLikesProjection;
@@ -90,8 +92,7 @@ public class RecipeEnrichmentService {
      * Hàm tổng hợp: map categories, tags, likes, commentCount cùng lúc
      * Tối ưu bằng cách chỉ extract recipeIds 1 lần
      */
-    public List<RecipeSummaryDTO> enrichAllForRecipeSummaryDTOs(List<RecipeSummaryDTO> dtos,
-            Long currentUserId) {
+    public List<RecipeSummaryDTO> enrichAllForRecipeSummaryDTOs(List<RecipeSummaryDTO> dtos, Long currentUserId) {
         if (dtos.isEmpty())
             return dtos;
 
@@ -167,6 +168,35 @@ public class RecipeEnrichmentService {
             Long currentUserId) {
         List<RecipeSummaryDTO> enrichedContent = enrichAllForRecipeSummaryDTOs(dtoPage.getContent(), currentUserId);
         return new PageImpl<>(enrichedContent, pageable, dtoPage.getTotalElements());
+    }
+
+    public RecipeDetailResponse enrichForDetailResponse(RecipeDetailResponse dto, Long currentUserId){
+        if (dto == null)
+            return null;
+
+        Long recipeId = dto.getId();
+
+        // Fetch data
+        RecipeLikesProjection likeProjection = likeRepository.getLikesOfRecipe(recipeId, currentUserId);
+        RecipeSavesProjection saveProjection = collectionRecipeRepository.countSavesAndCheckUserSavedForRecipe(recipeId, currentUserId);
+        Long commentCount = commentRepository.countByRecipeId(recipeId);
+        // Inject vào DTO
+        if (likeProjection != null){
+            dto.setLikeCount(likeProjection.getLikeCount());
+            dto.setLikedByCurrentUser(likeProjection.getLikedByUser());
+        } else {
+            dto.setLikeCount(0L);
+            dto.setLikedByCurrentUser(false);
+        }
+        if (saveProjection != null){
+            dto.setSaveCount(saveProjection.getSaveCount());
+            dto.setSavedByCurrentUser(saveProjection.getSavedByUser());
+        } else {
+            dto.setSaveCount(0L);
+            dto.setSavedByCurrentUser(false);
+        }
+        dto.setCommentCount(commentCount);
+        return dto;
     }
 
     // Private mapping methods

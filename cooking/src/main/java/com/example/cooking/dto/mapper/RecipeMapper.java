@@ -10,7 +10,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.example.cooking.repository.CollectionRecipeRepository;
 import com.example.cooking.config.AppProperties;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
@@ -19,7 +18,6 @@ import com.example.cooking.model.Category;
 import com.example.cooking.model.Recipe;
 import com.example.cooking.model.Tag;
 import com.example.cooking.repository.CategoryRepository;
-import com.example.cooking.repository.LikeRepository;
 import com.example.cooking.repository.TagRepository;
 
 @Mapper(componentModel = "spring", uses = {
@@ -30,12 +28,7 @@ import com.example.cooking.repository.TagRepository;
                                             CategoryMapper.class})
 public abstract class RecipeMapper {
     @Autowired
-    private LikeRepository likeRepository;
-    @Autowired
     private CategoryRepository categoryRepository;
-
-    @Autowired
-    private CollectionRecipeRepository collectionRecipeRepository;
 
     @Autowired
     private TagRepository tagRepository;
@@ -58,6 +51,9 @@ public abstract class RecipeMapper {
 
     @Mapping (target = "likeCount", ignore = true)
     @Mapping (target = "saveCount", ignore = true)
+    @Mapping (target = "commentCount", ignore = true)
+    @Mapping (target = "likedByCurrentUser", ignore = true)
+    @Mapping (target = "savedByCurrentUser", ignore = true)
     @Mapping (target = "ingredients", source = "recipeIngredients")
     public abstract RecipeDetailResponse toRecipeResponse(Recipe entity);
 
@@ -80,11 +76,7 @@ public abstract class RecipeMapper {
 
     @AfterMapping
     protected void addLikeCountAndSaveCountAndAddBaseURLImage(@MappingTarget RecipeDetailResponse response, Recipe entity) {
-        Long likeCount = likeRepository.countByRecipeId(entity.getId());
-        response.setLikeCount(likeCount);
-        Long saveCount = collectionRecipeRepository.countCollectionsByRecipeId(entity.getId());
-        response.setLikeCount(likeCount);
-        response.setSaveCount(saveCount);
+
         if (entity.getImageUrl() != null) {
             response.setImageUrl(appProperties.getStaticBaseUrl() + entity.getImageUrl());
         }
