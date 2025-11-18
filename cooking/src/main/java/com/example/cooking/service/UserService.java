@@ -1,11 +1,17 @@
 package com.example.cooking.service;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.cooking.common.PageDTO;
 import com.example.cooking.common.enums.FileType;
 import com.example.cooking.common.enums.UserStatus;
 import com.example.cooking.dto.UserDTO;
@@ -119,6 +125,34 @@ public class UserService {
     public UserDTO getUserByEmail(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException());
         return userMapper.toUserDTO(user);
+    }
+
+    /**
+     * Lấy danh sách User theo từ khóa tìm kiếm và phân trang.
+     *
+     * @param keyword Từ khóa tìm kiếm (có thể là username, email, hoặc bio)
+     * @param page Trang hiện tại (bắt đầu từ 0)
+     * @param size Kích thước của trang
+     * @param sortBy Trường để sắp xếp (ví dụ: "username", "createdAt")
+     * @param sortDir Hướng sắp xếp ("asc" hoặc "desc")
+     * @return Page chứa các đối tượng User đã được phân trang và lọc
+     */
+    public PageDTO<UserDTO> searchUsers(String keyword, int page, int size, String sortBy, String sortDir) {
+        // Tạo đối tượng Sort
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
+        // Tạo đối tượng Pageable
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // Gọi phương thức tìm kiếm từ Repository
+        // Đảm bảo keyword không null, nếu null thì truyền chuỗi rỗng để tìm kiếm tất cả
+        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? "" : keyword.trim();
+        Page<User> userPage =userRepository.searchUsersByKeyword(searchKeyword, pageable);
+        if(userPage.isEmpty()){
+            return PageDTO.empty(pageable);
+        }
+        List<UserDTO> userDTOs = userMapper.toUserDTOList(userPage.getContent());
+        return new PageDTO<>(userPage, userDTOs);   
     }
 
 }

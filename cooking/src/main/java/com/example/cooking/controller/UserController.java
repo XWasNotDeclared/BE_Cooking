@@ -2,16 +2,21 @@ package com.example.cooking.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.cooking.common.ApiResponse;
+import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.response.RecipeStatisticsDTO;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.AuthService;
 import com.example.cooking.service.RecipeService;
 import com.example.cooking.service.UserService;
+
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -38,6 +43,15 @@ public class UserController {
         //TODO: Doi kieu tra ve cho bao mat
         return ApiResponse.ok(user);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserDTO>> getUserById(@PathVariable Long id) {
+
+        UserDTO user = userService.getUserById(id);
+        //TODO: Doi kieu tra ve cho bao mat
+        return ApiResponse.ok(user);
+    }
+
     @GetMapping("/statistics")
     public ResponseEntity<ApiResponse<RecipeStatisticsDTO>> getMyRecipeStatistics(
             @AuthenticationPrincipal MyUserDetails currentUser) {
@@ -45,4 +59,21 @@ public class UserController {
         RecipeStatisticsDTO stats = recipeService.getStatisticsForUser(currentUser.getId());
         return ApiResponse.ok(stats);
     }
+
+    @Operation(
+        summary = "Tìm kiếm người dùng",
+        description = "API cho phép tìm kiếm người dùng dựa trên từ khóa với phân trang và sắp xếp."
+    )
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PageDTO<UserDTO>>> searchUsers(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "username") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+
+        PageDTO<UserDTO> userPage = userService.searchUsers(keyword, page, size, sortBy, sortDir);
+        return ApiResponse.ok(userPage);
+    }
+
 }
