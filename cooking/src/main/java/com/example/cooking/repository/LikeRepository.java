@@ -59,24 +59,36 @@ public interface LikeRepository extends JpaRepository<RecipeLike, Long> {
         List<RecipeLikesProjection> countLikeAndfindLikedByUser(@Param("recipeIds") Set<Long> recipeIds,
                         @Param("userId") Long userId);
 
+        @Query("""
+                        SELECT
+                                l.recipe.id AS recipeId,
+                                COUNT(l.id) AS likeCount,
+                                SUM(CASE WHEN l.user.id = :userId THEN 1 ELSE 0 END) > 0 AS likedByUser
+                        FROM RecipeLike l
+                        WHERE l.recipe.id = :recipeId
+                        GROUP BY l.recipe.id
+                        """)
+        RecipeLikesProjection getLikesOfRecipe(
+                        @Param("recipeId") Long recipeId,
+                        @Param("userId") Long userId);
+
         @Query("SELECT rl FROM RecipeLike rl WHERE rl.user.id = :userId")
         Page<RecipeLike> findByUserId(
                         @Param("userId") Long userId,
                         Pageable pageable);
 
-
         // @Query("SELECT rl.recipe FROM RecipeLike rl WHERE rl.user.id = :userId")
         @Query("""
-        SELECT rl.recipe 
-        FROM RecipeLike rl 
-        WHERE rl.user.id = :userId 
-        AND rl.recipe.status = com.example.cooking.common.enums.Status.APPROVED
-        AND (
-                rl.recipe.scope = com.example.cooking.common.enums.Scope.PUBLIC
-                OR (rl.recipe.scope = com.example.cooking.common.enums.Scope.PRIVATE AND rl.recipe.user.id = :userId)
-        )
-        ORDER BY rl.createdAt DESC
-        """)
+                        SELECT rl.recipe
+                        FROM RecipeLike rl
+                        WHERE rl.user.id = :userId
+                        AND rl.recipe.status = com.example.cooking.common.enums.Status.APPROVED
+                        AND (
+                                rl.recipe.scope = com.example.cooking.common.enums.Scope.PUBLIC
+                                OR (rl.recipe.scope = com.example.cooking.common.enums.Scope.PRIVATE AND rl.recipe.user.id = :userId)
+                        )
+                        ORDER BY rl.createdAt DESC
+                        """)
         Page<Recipe> findRecipesByUserId(
                         @Param("userId") Long userId,
                         Pageable pageable);

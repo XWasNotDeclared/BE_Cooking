@@ -134,8 +134,9 @@ public class RecipeService {
         accessService.checkRecipeAccess(recipe, currentUserId);
         // Tăng lượt xem
         incrementView(id);
-
-        return recipeMapper.toRecipeResponse(recipe);
+        RecipeDetailResponse dto = recipeMapper.toRecipeResponse(recipe);
+        dto = recipeEnrichmentService.enrichForDetailResponse(dto, currentUserId);
+        return dto;
     }
 
     // Lay recipe theo tag
