@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 
+import org.hibernate.query.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity; 
@@ -31,8 +32,23 @@ public class CategoryController {
     private final RecipeService recipeService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CategoryDTO>>> getAllCategories() {
-        return ApiResponse.ok(categoryService.getAllCategories());
+    public ResponseEntity<ApiResponse<PageDTO<CategoryDTO>>> getAllCategories(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+                Pageable pageable = PageRequest.of(page, size);
+        return ApiResponse.ok(categoryService.getAllCategories(pageable));
+    }
+
+    @Operation(
+        summary = "Lấy danh sách gợi ý danh mục trên trang ý tưởng",
+        description = "API trả về danh sách gợi ý danh mục (Category) để hiển thị trên trang ý tưởng."
+    )
+    @GetMapping("/ideas")
+    public ResponseEntity<ApiResponse<PageDTO<CategoryDTO>>> getIdeaCategories(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+                Pageable pageable = PageRequest.of(page, size);
+        return ApiResponse.ok(categoryService.getAllCategories(pageable));
     }
 
     @GetMapping("/{id}")

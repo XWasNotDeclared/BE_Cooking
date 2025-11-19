@@ -1,5 +1,6 @@
 package com.example.cooking.service;
 
+import com.example.cooking.common.PageDTO;
 import com.example.cooking.common.enums.FileType;
 import com.example.cooking.dto.CategoryDTO;
 import com.example.cooking.dto.mapper.CategoryMapper;
@@ -11,6 +12,7 @@ import com.example.cooking.repository.CategoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,9 +29,13 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
     private final UploadFileService uploadFileService;
 
-    public List<CategoryDTO> getAllCategories() {
-        List<CategoryDTO> categoryResponseDTOs = categoryMapper.toDTO(categoryRepository.findAll());
-        return categoryResponseDTOs;
+    public PageDTO<CategoryDTO> getAllCategories(Pageable pageable) {
+        Page<Category> categoryPage = categoryRepository.findAll(pageable);
+        if(categoryPage.isEmpty()){
+            return PageDTO.empty(pageable);
+        }
+        List<CategoryDTO> categoryResponseDTOs = categoryMapper.toDTO(categoryPage.getContent());
+        return new PageDTO<>(categoryPage, categoryResponseDTOs);
     }
 
     public CategoryDTO getCategoryById(Long id) {
