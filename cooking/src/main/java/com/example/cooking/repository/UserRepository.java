@@ -7,8 +7,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
+import com.example.cooking.common.enums.Status;
+import com.example.cooking.common.enums.UserStatus;
+import com.example.cooking.dto.UserDTO;
+import com.example.cooking.dto.admin.DashboardStatsDto;
 import com.example.cooking.model.User;
 
 @Repository
@@ -53,9 +58,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
            "LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(u.bio) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<User> searchUsersByKeyword(@Param("keyword") String keyword, Pageable pageable);
+////////////////////
+    @Query("SELECT DISTINCT u FROM User u " +
+       "LEFT JOIN u.roles r " +
+       "WHERE (:keyword IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+       "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+       "OR LOWER(u.bio) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+       "AND (:status IS NULL OR u.status = :status) " +
+       "AND (:role IS NULL OR r.name = :role)")
+    Page<User> searchUsersByFilters(
+            @Param("keyword") String keyword,
+            @Param("status") UserStatus status,
+            @Param("role") String role,
+            Pageable pageable);
 
-    /////////////
-    @Query("SELECT COUNT(DISTINCT r.user) FROM Recipe r WHERE r.createdAt >= :sevenDaysAgo")
-    long countActiveUsersLast7Days(@Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
 
 }

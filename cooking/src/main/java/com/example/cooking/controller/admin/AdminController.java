@@ -43,12 +43,6 @@ public class AdminController {
         return ApiResponse.ok("Welcome to the ToDo App!/ADMIN");
     }
 
-    @GetMapping("/user/all")
-    public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers() {
-
-        return ApiResponse.ok(userMapper.toUserDTOList(adminService.getAllUsers()));
-    }
-
     @PatchMapping("/recipe/{id}/status")
     public ResponseEntity<ApiResponse<String>> setRecipeStatus(@PathVariable Long id,
             @RequestParam Status status) {
