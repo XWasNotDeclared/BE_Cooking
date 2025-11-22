@@ -10,10 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.cooking.config.AppProperties;
 import com.example.cooking.dto.CategoryDTO;
-import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.request.CategoryRequestDTO;
 import com.example.cooking.model.Category;
-import com.example.cooking.model.User;
 
 @Mapper(componentModel = "spring")
 public abstract class CategoryMapper {
