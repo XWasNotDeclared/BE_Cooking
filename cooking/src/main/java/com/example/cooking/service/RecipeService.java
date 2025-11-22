@@ -26,11 +26,13 @@ import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.event.RecipeUpdatedEvent;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Recipe;
+import com.example.cooking.model.RecipeView;
 import com.example.cooking.model.Step;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.LikeRepository;
 import com.example.cooking.repository.RecipeRepository;
 import com.example.cooking.repository.RecipeSearchIndexRepository;
+import com.example.cooking.repository.RecipeViewRepository;
 import com.example.cooking.repository.UserRepository;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.specifications.RecipeSpecs;
@@ -49,6 +51,7 @@ public class RecipeService {
     private final RecipeSearchIndexRepository recipeSearchIndexRepository;
     private final AccessService accessService;
     private final LikeRepository likeRepository;
+    private final RecipeViewRepository recipeViewRepository;
 
     @Transactional
     public Long addNewRecipe(MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
@@ -112,10 +115,27 @@ public class RecipeService {
      * Tăng view khi user xem recipe
      */
     @Transactional
-    public void incrementView(Long recipeId) {
-        recipeRepository.incrementViews(recipeId);
-    }
+    public void incrementView(Recipe recipe, Long userId) {
+        // Long userId = currentUser != null ? currentUser.getId() : null;
+        User currentUser = userRepository.getReferenceById(userId);
+        if (userId != null) {
+            // Kiểm tra xem user đã xem chưa
+            boolean viewed = recipeViewRepository.existsByRecipeIdAndUserId(recipe.getId(), userId);
+            if (!viewed) {
+                RecipeView view = new RecipeView();
+                view.setRecipe(recipe);
+                view.setUser(currentUser);
+                view.setViewedAt(LocalDateTime.now());
+                recipeViewRepository.save(view);
 
+                // Tăng tổng views
+                recipeRepository.incrementViews(recipe.getId());
+            }
+        } else {
+            // Nếu không login, vẫn có thể tăng view tổng (optional)
+            recipeRepository.incrementViews(recipe.getId());
+        }
+    }
     /**
      * Lấy số lượt view hiện tại
      */
@@ -133,7 +153,7 @@ public class RecipeService {
         Long currentUserId = currentUser != null ? currentUser.getId() : null;
         accessService.checkRecipeAccess(recipe, currentUserId);
         // Tăng lượt xem
-        incrementView(id);
+        incrementView(recipe,currentUserId);
         RecipeDetailResponse dto = recipeMapper.toRecipeResponse(recipe);
         dto = recipeEnrichmentService.enrichForDetailResponse(dto, currentUserId);
         return dto;

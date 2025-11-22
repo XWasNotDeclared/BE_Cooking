@@ -151,6 +151,19 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
 
     @Query("SELECT COUNT(r) FROM Recipe r WHERE r.user.id = :userId AND r.createdAt >= :fromDate")
     Long countCreatedSinceForUser(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate);
+//////////////////
+    @Query("SELECT COALESCE(SUM(r.views), 0) FROM Recipe r WHERE r.updatedAt >= :today")
+    Long sumViewsToday(@Param("today") LocalDateTime today);
+
+    @Query("SELECT COALESCE(SUM(r.views), 0) FROM Recipe r WHERE r.updatedAt >= :yesterday AND r.updatedAt < :today")
+    Long sumViewsYesterday(@Param("yesterday") LocalDateTime yesterday, @Param("today") LocalDateTime today);
+
+    @Query("SELECT COUNT(r) FROM Recipe r WHERE r.status = 'PENDING'")
+    long countByStatus(Status status);
+
+    @Query("SELECT COUNT(r) FROM Recipe r WHERE r.reportedCount > 0") // nếu có cột này
+    Long countReportedRecipes();
+    ///////////
 
 
 }

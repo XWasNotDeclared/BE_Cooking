@@ -11,3 +11,4 @@ tf8mb4_unicode_ci
  cho tiếng việt ??? (GPT for more inf)
 
  ĐỔI PLACE HOLDER TRONG 2 API GỢI Ý Ở TRANG CHỦ VÀ GỢI Ý KẾT BẠN (TỔNG 3 API)
+ 10:12/20/11/25: vừa thêm recipeview.java, chuẩn bị trả về recipesummary có thêm last view.
