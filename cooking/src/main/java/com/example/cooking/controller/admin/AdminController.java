@@ -18,9 +18,7 @@ import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
-import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.mapper.RecipeMapper;
-import com.example.cooking.dto.mapper.UserMapper;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeStatisticsDTO;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
@@ -35,7 +33,6 @@ import org.springframework.data.domain.Sort;
 public class AdminController {
     private final AdminService adminService;
     private final RecipeService recipeService;
-    private final UserMapper userMapper;
     private final RecipeMapper recipeMapper;
 
     @GetMapping("/welcome")
@@ -71,14 +68,6 @@ public class AdminController {
         PageDTO<RecipeSummaryDTO> result = recipeService.getAllRecipesForAdmin(currentUser.getId(),status, scope, keyword, pageable);
 
         return ApiResponse.ok(result);
-    }
-
-    @GetMapping("/recipe/all")
-    public ResponseEntity<ApiResponse<List<RecipeDetailResponse>>>
-    getAllRecipes(){
-    //TODO: sửa lại, dùng enrich
-    return
-    ApiResponse.ok(recipeMapper.toRecipeResponseList(adminService.getAllRecipes()));
     }
 
     @GetMapping("/recipe/{id}")

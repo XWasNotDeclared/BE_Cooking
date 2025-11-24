@@ -13,6 +13,8 @@ import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.common.enums.UserStatus;
 import com.example.cooking.dto.UserDTO;
+import com.example.cooking.dto.UserRecipeCountDTO;
+import com.example.cooking.dto.UserTotalViewCountDTO;
 import com.example.cooking.service.admin.AdminUserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,6 +55,32 @@ public class UserManagerController {
     public ResponseEntity<ApiResponse<String>> deleteUser(@PathVariable Long id) {
         adminUserService.deleteUser(id);
         return ApiResponse.ok("User deleted successfully");
+    }
+    /**
+     * Top người đăng nhiều công thức nhất (có phân trang)
+     * Default: 30 ngày gần đây
+     */
+    @GetMapping("/top-posters")
+    public ResponseEntity<ApiResponse<PageDTO<UserRecipeCountDTO>>> getTopPosters(
+            @RequestParam(defaultValue = "30") Integer days,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PageDTO<UserRecipeCountDTO> result = adminUserService.getTopRecipePosters(days, null, null, page, size);
+        return ApiResponse.ok(result);
+    }
+
+    /**
+     * Top người có tổng views cao nhất
+     */
+    @GetMapping("/top-viewed")
+    public  ResponseEntity<ApiResponse<PageDTO<UserTotalViewCountDTO>>>  getTopViewedUsers(
+            @RequestParam(defaultValue = "30") Integer days,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PageDTO<UserTotalViewCountDTO> result = adminUserService.getTopViewedUsers(days, null, null, page, size);
+        return ApiResponse.ok(result);
     }
 
 }

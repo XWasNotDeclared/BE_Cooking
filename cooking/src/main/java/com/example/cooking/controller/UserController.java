@@ -1,15 +1,20 @@
 package com.example.cooking.controller;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.UserDTO;
+import com.example.cooking.dto.request.UpdateProfileRequest;
 import com.example.cooking.dto.response.RecipeStatisticsDTO;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.AuthService;
@@ -75,5 +80,23 @@ public class UserController {
         PageDTO<UserDTO> userPage = userService.searchUsers(keyword, page, size, sortBy, sortDir);
         return ApiResponse.ok(userPage);
     }
+
+    @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateProfile(
+            @ModelAttribute UpdateProfileRequest request,
+            @AuthenticationPrincipal MyUserDetails currentUser) {
+        UserDTO updated = userService.updateUserProfile(currentUser.getId(), request);
+        return ApiResponse.ok(updated);
+    }
+
+    @PostMapping("/upgrade-to-chef")
+    public ResponseEntity<?> upgradeToChef(
+            @AuthenticationPrincipal MyUserDetails currentUser
+        ) {
+        String result = userService.upgradeToChef(currentUser.getId());
+        return ApiResponse.ok(result);
+    }
+
+
 
 }
