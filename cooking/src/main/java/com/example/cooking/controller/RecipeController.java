@@ -107,6 +107,19 @@ public class RecipeController {
         PageDTO<RecipeSummaryDTO> recipes = recipeService.getMyLikedRecipes(currentUser, pageable);
         return ApiResponse.ok(recipes);
     }
+    @GetMapping("/recent")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getMyRecentlyViewedRecipes(
+            @AuthenticationPrincipal MyUserDetails currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PageDTO<RecipeSummaryDTO> recipes = recipeService.getMyRecentlyViewedRecipes(currentUser, pageable);
+
+        return ApiResponse.ok(recipes);
+    }
+
     /**
      * Lấy danh sách công thức của tôi
      * Hỗ trợ lọc: status, scope, keyword

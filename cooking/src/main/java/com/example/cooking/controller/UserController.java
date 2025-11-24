@@ -90,6 +90,7 @@ public class UserController {
     }
 
     @PostMapping("/upgrade-to-chef")
+    //TODO: NEN DE THANH ADMIN DUYET
     public ResponseEntity<?> upgradeToChef(
             @AuthenticationPrincipal MyUserDetails currentUser
         ) {
