@@ -29,9 +29,4 @@ public class AdminService {
         recipe.setStatus(status);
         recipeRepository.save(recipe);
     }
-
-    public List<Recipe> getAllRecipes() {
-        List<Recipe> recipes = recipeRepository.findAll();
-        return recipes;
-    }
 }
