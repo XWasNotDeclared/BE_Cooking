@@ -111,31 +111,37 @@ public class RecipeService {
         recipeRepository.save(recipe);
     }
 
-    /**
-     * Tăng view khi user xem recipe
-     */
-    @Transactional
-    public void incrementView(Recipe recipe, Long userId) {
-        // Long userId = currentUser != null ? currentUser.getId() : null;
-        User currentUser = userRepository.getReferenceById(userId);
-        if (userId != null) {
-            // Kiểm tra xem user đã xem chưa
-            boolean viewed = recipeViewRepository.existsByRecipeIdAndUserId(recipe.getId(), userId);
-            if (!viewed) {
-                RecipeView view = new RecipeView();
-                view.setRecipe(recipe);
-                view.setUser(currentUser);
-                view.setViewedAt(LocalDateTime.now());
-                recipeViewRepository.save(view);
+/**
+ * Tăng view khi user xem recipe + lưu lần xem cuối (update nếu đã xem rồi)
+ */
+@Transactional
+public void incrementView(Recipe recipe, Long userId) {
+    User currentUser = userId != null ? userRepository.getReferenceById(userId) : null;
 
-                // Tăng tổng views
-                recipeRepository.incrementViews(recipe.getId());
-            }
+    // --- Luôn tăng tổng view ---
+    recipeRepository.incrementViews(recipe.getId());
+
+    // --- Nếu có user (đã login) thì lưu lượt xem cuối ---
+    if (currentUser != null) {
+        RecipeView existingView = recipeViewRepository
+                .findByRecipeIdAndUserId(recipe.getId(), userId)
+                .orElse(null);
+
+        if (existingView == null) {
+            // Chưa xem → tạo mới
+            RecipeView view = new RecipeView();
+            view.setRecipe(recipe);
+            view.setUser(currentUser);
+            view.setViewedAt(LocalDateTime.now());
+            recipeViewRepository.save(view);
         } else {
-            // Nếu không login, vẫn có thể tăng view tổng (optional)
-            recipeRepository.incrementViews(recipe.getId());
+            // Đã xem → cập nhật thời gian xem cuối
+            existingView.setViewedAt(LocalDateTime.now());
+            recipeViewRepository.save(existingView);
         }
     }
+}
+
     /**
      * Lấy số lượt view hiện tại
      */
@@ -237,6 +243,20 @@ public class RecipeService {
         recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
         return new PageDTO<>(recipePage, recipeSummaries);
     }
+        //////////////////////////////////////////
+    public PageDTO<RecipeSummaryDTO> getMyRecentlyViewedRecipes(MyUserDetails currentUser, Pageable pageable) {
+        Page<Recipe> recipePage = recipeViewRepository.findRecentlyViewedRecipes(currentUser.getId(), pageable);
+
+        if (recipePage.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+
+        List<RecipeSummaryDTO> recipeSummaries = recipeMapper.toSummaryDTOList(recipePage.getContent());
+        recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
+
+        return new PageDTO<>(recipePage, recipeSummaries);
+    }
+
 
     ///////////////////////////////
     /// TODO: UTest hàm này và hàm con
