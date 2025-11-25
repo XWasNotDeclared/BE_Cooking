@@ -113,6 +113,16 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
             @Param("status") Status status,
             Pageable pageable
     );
+    @Query("SELECT DISTINCT r FROM Recipe r " +
+           "JOIN r.categories c " +
+           "WHERE c.id IN :categoryIds " +
+           "AND r.scope = :scope " +
+           "AND r.status = :status")
+    Page<Recipe> findPublicApprovedByCategoryIds(
+            @Param("categoryIds") List<Long> categoryIds,
+            @Param("scope") Scope scope,
+            @Param("status") Status status,
+            Pageable pageable);
 
     ////////thong ke cho admin//////////
     @Query("SELECT COUNT(r) FROM Recipe r")

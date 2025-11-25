@@ -18,9 +18,12 @@ import com.example.cooking.common.enums.Difficulty;
 import com.example.cooking.common.enums.FileType;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
+import com.example.cooking.dto.RecipeIngredientDTO;
 import com.example.cooking.dto.mapper.RecipeMapper;
 import com.example.cooking.dto.request.NewRecipeRequest;
+import com.example.cooking.dto.request.RecipeIngredientRequestDTO;
 import com.example.cooking.dto.request.StepRequestDTO;
+import com.example.cooking.dto.request.UpdateRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeStatisticsDTO;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
@@ -28,11 +31,13 @@ import com.example.cooking.event.RecipeUpdatedEvent;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Recipe;
 import com.example.cooking.model.RecipeDailyView;
+import com.example.cooking.model.RecipeIngredient;
 import com.example.cooking.model.RecipeView;
 import com.example.cooking.model.Step;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.LikeRepository;
 import com.example.cooking.repository.RecipeDailyViewRepository;
+import com.example.cooking.repository.RecipeIngredientRepository;
 import com.example.cooking.repository.RecipeRepository;
 import com.example.cooking.repository.RecipeSearchIndexRepository;
 import com.example.cooking.repository.RecipeViewRepository;
@@ -56,6 +61,7 @@ public class RecipeService {
     private final LikeRepository likeRepository;
     private final RecipeViewRepository recipeViewRepository;
     private final RecipeDailyViewRepository recipeDailyViewRepository;
+    private final RecipeIngredientRepository ingredientRepository;
 
     @Transactional
     public Long addNewRecipe(MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
@@ -216,6 +222,26 @@ public class RecipeService {
         return new PageDTO<>(recipePage, recipeSummaries);
     }
 
+    //////////
+    public PageDTO<RecipeSummaryDTO> getRecipesByCategoryIds(
+            MyUserDetails currentUser, List<Long> categoryIds, Pageable pageable) {
+
+        Page<Recipe> recipePage = recipeRepository.findPublicApprovedByCategoryIds(
+                categoryIds,
+                Scope.PUBLIC,
+                Status.APPROVED,
+                pageable);
+
+        if (recipePage.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+
+        List<RecipeSummaryDTO> recipeSummaries = recipeMapper.toSummaryDTOList(recipePage.getContent());
+        recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
+
+        return new PageDTO<>(recipePage, recipeSummaries);
+    }
+
     //////////////////////////////////////////
     public PageDTO<RecipeSummaryDTO> getMyRecipes(MyUserDetails currentUser, Pageable pageable) {
         Page<Recipe> recipePage = recipeRepository.findByUserId(currentUser.getId(), pageable);
@@ -261,7 +287,8 @@ public class RecipeService {
         return new PageDTO<>(recipePage, recipeSummaries);
     }
 
-    public PageDTO<RecipeSummaryDTO> getLikedRecipesByUserId(MyUserDetails currentUser, Long userId, Pageable pageable) {
+    public PageDTO<RecipeSummaryDTO> getLikedRecipesByUserId(MyUserDetails currentUser, Long userId,
+            Pageable pageable) {
         Page<Recipe> recipePage = likeRepository.findRecipesByUserId(userId, pageable);
 
         if (recipePage.isEmpty()) {
@@ -269,7 +296,7 @@ public class RecipeService {
         }
         // basic infor
         List<RecipeSummaryDTO> recipeSummaries = recipeMapper.toSummaryDTOList(recipePage.getContent());
-        //enrich theo user hien tai
+        // enrich theo user hien tai
         recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
         return new PageDTO<>(recipePage, recipeSummaries);
     }
