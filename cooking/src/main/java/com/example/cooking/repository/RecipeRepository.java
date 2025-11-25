@@ -17,7 +17,10 @@ import org.springframework.data.repository.query.Param;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.projection.RecipeCategoryProjection;
+import com.example.cooking.dto.projection.RecipeDifficultyCount;
 import com.example.cooking.dto.projection.RecipePermissionInfoProjection;
+import com.example.cooking.dto.projection.RecipeScopeCount;
+import com.example.cooking.dto.projection.RecipeStatusCount;
 import com.example.cooking.dto.projection.RecipeTagProjection;
 import com.example.cooking.model.Recipe;
 
@@ -150,14 +153,14 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
     @Query("SELECT SUM(r.views) FROM Recipe r WHERE r.user.id = :userId")
     Long countTotalViewsByUser(@Param("userId") Long userId);
 
-    @Query("SELECT r.status, COUNT(r) FROM Recipe r WHERE r.user.id = :userId GROUP BY r.status")
-    List<Object[]> countByStatusForUser(@Param("userId") Long userId);
+    @Query("SELECT r.status as status, COUNT(r) as count FROM Recipe r WHERE r.user.id = :userId GROUP BY r.status")
+    List<RecipeStatusCount> countByStatusForUser(@Param("userId") Long userId);
 
-    @Query("SELECT r.difficulty, COUNT(r) FROM Recipe r WHERE r.user.id = :userId GROUP BY r.difficulty")
-    List<Object[]> countByDifficultyForUser(@Param("userId") Long userId);
+    @Query("SELECT r.difficulty as difficulty, COUNT(r) as count FROM Recipe r WHERE r.user.id = :userId GROUP BY r.difficulty")
+    List<RecipeDifficultyCount> countByDifficultyForUser(@Param("userId") Long userId);
 
-    @Query("SELECT r.scope, COUNT(r) FROM Recipe r WHERE r.user.id = :userId GROUP BY r.scope")
-    List<Object[]> countByScopeForUser(@Param("userId") Long userId);
+    @Query("SELECT r.scope as scope, COUNT(r) as count FROM Recipe r WHERE r.user.id = :userId GROUP BY r.scope")
+    List<RecipeScopeCount> countByScopeForUser(@Param("userId") Long userId);
 
     @Query("SELECT COUNT(r) FROM Recipe r WHERE r.user.id = :userId AND r.createdAt >= :fromDate")
     Long countCreatedSinceForUser(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate);
