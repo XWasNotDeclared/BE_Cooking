@@ -28,7 +28,7 @@ public class AdminRecipeService {
         ///////////////////
     /// TODO: UTest hàm này và hàm con
     public PageDTO<RecipeSummaryDTO> getAllRecipesForAdmin(
-            Long currentUserId,
+            Long adminId,
             Status status,
             Scope scope,
             String keyword,
@@ -47,7 +47,7 @@ public class AdminRecipeService {
         }
 
         List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(page.getContent());
-        dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, currentUserId);
+        dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, adminId);
 
         return new PageDTO<>(page, dtos);
     }

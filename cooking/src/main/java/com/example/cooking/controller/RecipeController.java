@@ -211,6 +211,23 @@ public class RecipeController {
         return ApiResponse.ok(recipeService.getMyRecipes(user.getId(), Status.APPROVED, Scope.PUBLIC, null, pageable));
     }
 
+    @GetMapping("/user/{userId}/public-recipes")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getPublicRecipes(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "views") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Pageable pageable = createPageable(page, size, sortBy, direction);
+
+        PageDTO<RecipeSummaryDTO> result = recipeService.getRecipesByUserId(
+                userId, Status.APPROVED, Scope.PUBLIC, keyword, pageable);
+
+        return ApiResponse.ok(result);
+    }
+
     // Hàm tiện ích để tạo Pageable với sort động
     private Pageable createPageable(int page, int size, String sortBy, String direction) {
         Sort sort = direction.equalsIgnoreCase("asc")
