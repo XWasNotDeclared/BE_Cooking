@@ -1,5 +1,6 @@
 package com.example.cooking.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -26,10 +27,12 @@ import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.event.RecipeUpdatedEvent;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Recipe;
+import com.example.cooking.model.RecipeDailyView;
 import com.example.cooking.model.RecipeView;
 import com.example.cooking.model.Step;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.LikeRepository;
+import com.example.cooking.repository.RecipeDailyViewRepository;
 import com.example.cooking.repository.RecipeRepository;
 import com.example.cooking.repository.RecipeSearchIndexRepository;
 import com.example.cooking.repository.RecipeViewRepository;
@@ -52,6 +55,7 @@ public class RecipeService {
     private final AccessService accessService;
     private final LikeRepository likeRepository;
     private final RecipeViewRepository recipeViewRepository;
+    private final RecipeDailyViewRepository recipeDailyViewRepository;
 
     @Transactional
     public Long addNewRecipe(MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
@@ -111,36 +115,48 @@ public class RecipeService {
         recipeRepository.save(recipe);
     }
 
-/**
- * Tăng view khi user xem recipe + lưu lần xem cuối (update nếu đã xem rồi)
- */
-@Transactional
-public void incrementView(Recipe recipe, Long userId) {
-    User currentUser = userId != null ? userRepository.getReferenceById(userId) : null;
+    @Transactional
+    public void incrementView(Recipe recipe, Long userId) {
+        User currentUser = userId != null ? userRepository.getReferenceById(userId) : null;
 
-    // --- Luôn tăng tổng view ---
-    recipeRepository.incrementViews(recipe.getId());
+        LocalDate today = LocalDate.now();
 
-    // --- Nếu có user (đã login) thì lưu lượt xem cuối ---
-    if (currentUser != null) {
-        RecipeView existingView = recipeViewRepository
-                .findByRecipeIdAndUserId(recipe.getId(), userId)
+        // 1. Tăng tổng view trong Recipe (hiển thị nhanh)
+        recipeRepository.incrementViews(recipe.getId());
+
+        // 2. Cập nhật lượt xem theo ngày
+        RecipeDailyView dailyView = recipeDailyViewRepository
+                .findByRecipeIdAndViewDate(recipe.getId(), today)
                 .orElse(null);
 
-        if (existingView == null) {
-            // Chưa xem → tạo mới
-            RecipeView view = new RecipeView();
-            view.setRecipe(recipe);
-            view.setUser(currentUser);
-            view.setViewedAt(LocalDateTime.now());
-            recipeViewRepository.save(view);
+        if (dailyView == null) {
+            dailyView = new RecipeDailyView();
+            dailyView.setRecipe(recipe);
+            dailyView.setViewDate(today);
+            dailyView.setViewCount(1L);
         } else {
-            // Đã xem → cập nhật thời gian xem cuối
-            existingView.setViewedAt(LocalDateTime.now());
-            recipeViewRepository.save(existingView);
+            dailyView.setViewCount(dailyView.getViewCount() + 1);
+        }
+        recipeDailyViewRepository.save(dailyView);
+
+        // 3. Nếu có user → lưu lượt xem cuối
+        if (currentUser != null) {
+            RecipeView existingView = recipeViewRepository
+                    .findByRecipeIdAndUserId(recipe.getId(), userId)
+                    .orElse(null);
+
+            if (existingView == null) {
+                RecipeView view = new RecipeView();
+                view.setRecipe(recipe);
+                view.setUser(currentUser);
+                view.setViewedAt(LocalDateTime.now());
+                recipeViewRepository.save(view);
+            } else {
+                existingView.setViewedAt(LocalDateTime.now());
+                recipeViewRepository.save(existingView);
+            }
         }
     }
-}
 
     /**
      * Lấy số lượt view hiện tại
@@ -159,7 +175,7 @@ public void incrementView(Recipe recipe, Long userId) {
         Long currentUserId = currentUser != null ? currentUser.getId() : null;
         accessService.checkRecipeAccess(recipe, currentUserId);
         // Tăng lượt xem
-        incrementView(recipe,currentUserId);
+        incrementView(recipe, currentUserId);
         RecipeDetailResponse dto = recipeMapper.toRecipeResponse(recipe);
         dto = recipeEnrichmentService.enrichForDetailResponse(dto, currentUserId);
         return dto;
@@ -183,7 +199,8 @@ public void incrementView(Recipe recipe, Long userId) {
     }
 
     // Lay recipe theo category
-    public PageDTO<RecipeSummaryDTO> getRecipeByCategoryId(MyUserDetails currentUser, Long categoryId, Pageable pageable) {
+    public PageDTO<RecipeSummaryDTO> getRecipeByCategoryId(MyUserDetails currentUser, Long categoryId,
+            Pageable pageable) {
         Page<Recipe> recipePage = recipeRepository.findPublicApprovedByCategoryId(
                 categoryId,
                 Scope.PUBLIC,
@@ -243,7 +260,21 @@ public void incrementView(Recipe recipe, Long userId) {
         recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
         return new PageDTO<>(recipePage, recipeSummaries);
     }
-        //////////////////////////////////////////
+
+    public PageDTO<RecipeSummaryDTO> getLikedRecipesByUserId(MyUserDetails currentUser, Long userId, Pageable pageable) {
+        Page<Recipe> recipePage = likeRepository.findRecipesByUserId(userId, pageable);
+
+        if (recipePage.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+        // basic infor
+        List<RecipeSummaryDTO> recipeSummaries = recipeMapper.toSummaryDTOList(recipePage.getContent());
+        //enrich theo user hien tai
+        recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
+        return new PageDTO<>(recipePage, recipeSummaries);
+    }
+
+    //////////////////////////////////////////
     public PageDTO<RecipeSummaryDTO> getMyRecentlyViewedRecipes(MyUserDetails currentUser, Pageable pageable) {
         Page<Recipe> recipePage = recipeViewRepository.findRecentlyViewedRecipes(currentUser.getId(), pageable);
 
@@ -257,7 +288,6 @@ public void incrementView(Recipe recipe, Long userId) {
         return new PageDTO<>(recipePage, recipeSummaries);
     }
 
-
     ///////////////////////////////
     /// TODO: UTest hàm này và hàm con
     public PageDTO<RecipeSummaryDTO> getMyRecipes(
@@ -268,8 +298,9 @@ public void incrementView(Recipe recipe, Long userId) {
             Pageable pageable) {
         return getRecipesInternal(currentUserId, status, scope, keyword, pageable);
     }
-        ///////////////////////////////
-        /// Lay recipe public cua user khac
+
+    ///////////////////////////////
+    /// Lay recipe public cua user khac
     /// TODO: UTest hàm này và hàm con
     public PageDTO<RecipeSummaryDTO> getRecipesByUserId(
             Long userId,
@@ -282,31 +313,30 @@ public void incrementView(Recipe recipe, Long userId) {
     }
 
     private PageDTO<RecipeSummaryDTO> getRecipesInternal(
-        Long userId,
-        Status status,
-        Scope scope,
-        String keyword,
-        Pageable pageable) {
+            Long userId,
+            Status status,
+            Scope scope,
+            String keyword,
+            Pageable pageable) {
 
-    Specification<Recipe> spec = Specification.allOf(
-            RecipeSpecs.hasUserId(userId),
-            RecipeSpecs.hasStatus(status),
-            RecipeSpecs.hasScope(scope),
-            RecipeSpecs.titleContains(keyword),
-            RecipeSpecs.isNotDeleted());
+        Specification<Recipe> spec = Specification.allOf(
+                RecipeSpecs.hasUserId(userId),
+                RecipeSpecs.hasStatus(status),
+                RecipeSpecs.hasScope(scope),
+                RecipeSpecs.titleContains(keyword),
+                RecipeSpecs.isNotDeleted());
 
-    Page<Recipe> page = recipeRepository.findAll(spec, pageable);
+        Page<Recipe> page = recipeRepository.findAll(spec, pageable);
 
-    if (page.isEmpty()) {
-        return PageDTO.empty(pageable);
+        if (page.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+
+        List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(page.getContent());
+        dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, userId);
+
+        return new PageDTO<>(page, dtos);
     }
-
-    List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(page.getContent());
-    dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, userId);
-
-    return new PageDTO<>(page, dtos);
-}
-
 
     ///////////////////
     /// TODO: UTest hàm này và hàm con
@@ -337,41 +367,43 @@ public void incrementView(Recipe recipe, Long userId) {
 
     ///// thống kê cho admin////////////
     /// TODO: cânn nhắc chuyển sang service riêng cho thống kê
-    public RecipeStatisticsDTO getRecipeStatistics() {
-        Long totalRecipes = recipeRepository.countAllRecipes();
-        Long totalViews = recipeRepository.countTotalViews();
+    // public RecipeStatisticsDTO getRecipeStatistics() {
+    // Long totalRecipes = recipeRepository.countAllRecipes();
+    // Long totalViews = recipeRepository.countTotalViews();
 
-        Map<String, Long> byStatus = recipeRepository.countByStatus().stream()
-                .collect(Collectors.toMap(
-                        arr -> arr[0].toString(),
-                        arr -> (Long) arr[1]));
+    // Map<String, Long> byStatus = recipeRepository.countByStatus().stream()
+    // .collect(Collectors.toMap(
+    // arr -> arr[0].toString(),
+    // arr -> (Long) arr[1]));
 
-        Map<String, Long> byDifficulty = recipeRepository.countByDifficulty().stream()
-                .collect(Collectors.toMap(
-                        arr -> arr[0].toString(),
-                        arr -> (Long) arr[1]));
+    // Map<String, Long> byDifficulty =
+    // recipeRepository.countByDifficulty().stream()
+    // .collect(Collectors.toMap(
+    // arr -> arr[0].toString(),
+    // arr -> (Long) arr[1]));
 
-        Map<String, Long> byScope = recipeRepository.countByScope().stream()
-                .collect(Collectors.toMap(
-                        arr -> arr[0].toString(),
-                        arr -> (Long) arr[1]));
+    // Map<String, Long> byScope = recipeRepository.countByScope().stream()
+    // .collect(Collectors.toMap(
+    // arr -> arr[0].toString(),
+    // arr -> (Long) arr[1]));
 
-        Long createdLast7Days = recipeRepository.countCreatedSince(LocalDateTime.now().minusDays(7));
+    // // Long createdLast7Days =
+    // recipeRepository.countCreatedSince(LocalDateTime.now().minusDays(7));
 
-        return new RecipeStatisticsDTO(
-                totalRecipes,
-                totalViews != null ? totalViews : 0L,
-                byStatus,
-                byDifficulty,
-                byScope,
-                createdLast7Days);
-    }
+    // return new RecipeStatisticsDTO(
+    // totalRecipes,
+    // totalViews != null ? totalViews : 0L,
+    // byStatus,
+    // byDifficulty,
+    // byScope);
+    // }
 
     ///////// thống kê cho chef///////////
     // TODO: cânn nhắc chuyển sang service riêng cho thống kê
     public RecipeStatisticsDTO getStatisticsForUser(Long userId) {
         Long totalRecipes = recipeRepository.countAllByUser(userId);
         Long totalViews = recipeRepository.countTotalViewsByUser(userId);
+        Long totalLikes = recipeRepository.countTotalLikesByUser(userId);
 
         Map<String, Long> byStatus = recipeRepository.countByStatusForUser(userId).stream()
                 .collect(Collectors.toMap(
@@ -388,15 +420,13 @@ public void incrementView(Recipe recipe, Long userId) {
                         arr -> arr[0].toString(),
                         arr -> (Long) arr[1]));
 
-        Long createdLast7Days = recipeRepository.countCreatedSinceForUser(userId, LocalDateTime.now().minusDays(7));
-
         return new RecipeStatisticsDTO(
                 totalRecipes,
                 totalViews != null ? totalViews : 0L,
+                totalLikes != null ? totalLikes : 0L,
                 byStatus,
                 byDifficulty,
-                byScope,
-                createdLast7Days);
+                byScope);
     }
 
     //////////////

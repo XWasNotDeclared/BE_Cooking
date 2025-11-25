@@ -12,6 +12,7 @@ import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
+import com.example.cooking.dto.projection.RecipeDailyStat;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
@@ -107,6 +108,21 @@ public class RecipeController {
         PageDTO<RecipeSummaryDTO> recipes = recipeService.getMyLikedRecipes(currentUser, pageable);
         return ApiResponse.ok(recipes);
     }
+
+    @GetMapping("/liked/user/{userId}")
+    @PreAuthorize("hasRole('CHEF')")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getLikedRecipesByUserId(
+            @AuthenticationPrincipal MyUserDetails currentUser,
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PageDTO<RecipeSummaryDTO> recipes = recipeService.getLikedRecipesByUserId(currentUser,userId,pageable);
+        return ApiResponse.ok(recipes);
+    }
+
+
     @GetMapping("/recent")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getMyRecentlyViewedRecipes(
