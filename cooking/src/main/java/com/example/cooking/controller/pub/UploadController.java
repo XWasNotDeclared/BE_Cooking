@@ -19,26 +19,26 @@ public class UploadController {
 
     private final UploadFileService uploadFileService;
 
-    // ===================== AVATAR =====================
-    @PostMapping(path = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<String>> uploadAvatarTemp(@RequestParam("file") MultipartFile file) {
-        String tempUrl = uploadFileService.saveTempFile(file, FileType.AVATAR);
-        return ApiResponse.ok(tempUrl);
-    }
+    // // ===================== AVATAR =====================
+    // @PostMapping(path = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // public ResponseEntity<ApiResponse<String>> uploadAvatarTemp(@RequestParam("file") MultipartFile file) {
+    //     String tempUrl = uploadFileService.saveTempFile(file, FileType.AVATAR);
+    //     return ApiResponse.ok(tempUrl);
+    // }
 
-    // ===================== recipe =====================
-    @PostMapping(path = "/recipe", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<String>> uploadDishTemp(@RequestParam("file") MultipartFile file) {
-        String tempUrl = uploadFileService.saveTempFile(file, FileType.RECIPE);
-        return ApiResponse.ok(tempUrl);
-    }
+    // // ===================== recipe =====================
+    // @PostMapping(path = "/recipe", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // public ResponseEntity<ApiResponse<String>> uploadDishTemp(@RequestParam("file") MultipartFile file) {
+    //     String tempUrl = uploadFileService.saveTempFile(file, FileType.RECIPE);
+    //     return ApiResponse.ok(tempUrl);
+    // }
 
-    // ===================== STEP =====================
-    @PostMapping(path = "/step", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<String>> uploadStepTemp(@RequestParam("file") MultipartFile file) {
-        String tempUrl = uploadFileService.saveTempFile(file, FileType.STEP);
-        return ApiResponse.ok(tempUrl);
-    }
+    // // ===================== STEP =====================
+    // @PostMapping(path = "/step", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // public ResponseEntity<ApiResponse<String>> uploadStepTemp(@RequestParam("file") MultipartFile file) {
+    //     String tempUrl = uploadFileService.saveTempFile(file, FileType.STEP);
+    //     return ApiResponse.ok(tempUrl);
+    // }
 
     // ===================== VIDEO =====================
     @PostMapping(path = "/video", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
