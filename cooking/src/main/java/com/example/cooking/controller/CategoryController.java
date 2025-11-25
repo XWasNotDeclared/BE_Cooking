@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.query.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity; 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -100,7 +101,23 @@ public class CategoryController {
         Pageable pageable = PageRequest.of(page, size);
         return ApiResponse.ok(recipeService.getRecipeByCategoryId(currentUser,id, pageable));
     }
-    
+    @Operation(
+    summary = "Lấy danh sách công thức theo list category",
+    description = "API trả về danh sách công thức (Recipe) thuộc một danh mục (Category) theo phân trang."
+    )
+    @GetMapping("/recipes/by-categories")
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getRecipesByCategories(
+        @AuthenticationPrincipal MyUserDetails currentUser,
+        @RequestParam List<Long> categoryIds,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "views") String sortBy,
+        @RequestParam(defaultValue = "desc") String sortDir) {
+
+    Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+    Pageable pageable = PageRequest.of(page, size, sort);
+    return ApiResponse.ok(recipeService.getRecipesByCategoryIds(currentUser, categoryIds, pageable));
+    }
 
     // @PostMapping("/add-batch")
     // @PreAuthorize("hasRole('ADMIN')")
