@@ -266,25 +266,47 @@ public void incrementView(Recipe recipe, Long userId) {
             Scope scope,
             String keyword,
             Pageable pageable) {
-
-        Specification<Recipe> spec = Specification.allOf(
-                RecipeSpecs.hasUserId(currentUserId),
-                RecipeSpecs.hasStatus(status),
-                RecipeSpecs.hasScope(scope),
-                RecipeSpecs.titleContains(keyword),
-                RecipeSpecs.isNotDeleted());
-
-        Page<Recipe> page = recipeRepository.findAll(spec, pageable);
-
-        if (page.isEmpty()) {
-            return PageDTO.empty(pageable);
-        }
-
-        List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(page.getContent());
-        dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, currentUserId);
-
-        return new PageDTO<>(page, dtos);
+        return getRecipesInternal(currentUserId, status, scope, keyword, pageable);
     }
+        ///////////////////////////////
+        /// Lay recipe public cua user khac
+    /// TODO: UTest hàm này và hàm con
+    public PageDTO<RecipeSummaryDTO> getRecipesByUserId(
+            Long userId,
+            Status status,
+            Scope scope,
+            String keyword,
+            Pageable pageable) {
+
+        return getRecipesInternal(userId, status, scope, keyword, pageable);
+    }
+
+    private PageDTO<RecipeSummaryDTO> getRecipesInternal(
+        Long userId,
+        Status status,
+        Scope scope,
+        String keyword,
+        Pageable pageable) {
+
+    Specification<Recipe> spec = Specification.allOf(
+            RecipeSpecs.hasUserId(userId),
+            RecipeSpecs.hasStatus(status),
+            RecipeSpecs.hasScope(scope),
+            RecipeSpecs.titleContains(keyword),
+            RecipeSpecs.isNotDeleted());
+
+    Page<Recipe> page = recipeRepository.findAll(spec, pageable);
+
+    if (page.isEmpty()) {
+        return PageDTO.empty(pageable);
+    }
+
+    List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(page.getContent());
+    dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, userId);
+
+    return new PageDTO<>(page, dtos);
+}
+
 
     ///////////////////
     /// TODO: UTest hàm này và hàm con
