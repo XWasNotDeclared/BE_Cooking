@@ -75,11 +75,16 @@ public abstract class RecipeMapper {
 
 
     @AfterMapping
-    protected void addLikeCountAndSaveCountAndAddBaseURLImage(@MappingTarget RecipeDetailResponse response, Recipe entity) {
+    protected void addBaseUrl(@MappingTarget RecipeDetailResponse response, Recipe entity) {
 
         if (entity.getImageUrl() != null) {
             response.setImageUrl(appProperties.getStaticBaseUrl() + entity.getImageUrl());
         }
+
+        if (entity.getVideoUrl() != null) {
+            response.setVideoUrl(appProperties.getStaticBaseUrl() + entity.getVideoUrl());
+        }
+
     }
 
 
