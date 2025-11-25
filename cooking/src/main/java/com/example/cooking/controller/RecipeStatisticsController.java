@@ -25,8 +25,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/statistics") // root path gọn gàng, hợp lý
 @RequiredArgsConstructor
 public class RecipeStatisticsController {
-
-    private final RecipeService recipeService;
     private final RecipeStatsService recipeStatsService;
 
         @GetMapping
@@ -36,7 +34,7 @@ public class RecipeStatisticsController {
     )
     public ResponseEntity<ApiResponse<RecipeStatisticsDTO>> getMyRecipeStatistics(
             @AuthenticationPrincipal MyUserDetails currentUser) {
-        RecipeStatisticsDTO stats = recipeService.getStatisticsForUser(currentUser.getId());
+        RecipeStatisticsDTO stats = recipeStatsService.getStatisticsForUser(currentUser.getId());
         return ApiResponse.ok(stats);
     }
 

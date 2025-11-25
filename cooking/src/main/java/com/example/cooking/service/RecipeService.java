@@ -425,36 +425,6 @@ public class RecipeService {
     // byScope);
     // }
 
-    ///////// thống kê cho chef///////////
-    // TODO: cânn nhắc chuyển sang service riêng cho thống kê
-    public RecipeStatisticsDTO getStatisticsForUser(Long userId) {
-        Long totalRecipes = recipeRepository.countAllByUser(userId);
-        Long totalViews = recipeRepository.countTotalViewsByUser(userId);
-        Long totalLikes = recipeRepository.countTotalLikesByUser(userId);
-
-        Map<String, Long> byStatus = recipeRepository.countByStatusForUser(userId).stream()
-                .collect(Collectors.toMap(
-                        arr -> arr[0].toString(),
-                        arr -> (Long) arr[1]));
-
-        Map<String, Long> byDifficulty = recipeRepository.countByDifficultyForUser(userId).stream()
-                .collect(Collectors.toMap(
-                        arr -> arr[0].toString(),
-                        arr -> (Long) arr[1]));
-
-        Map<String, Long> byScope = recipeRepository.countByScopeForUser(userId).stream()
-                .collect(Collectors.toMap(
-                        arr -> arr[0].toString(),
-                        arr -> (Long) arr[1]));
-
-        return new RecipeStatisticsDTO(
-                totalRecipes,
-                totalViews != null ? totalViews : 0L,
-                totalLikes != null ? totalLikes : 0L,
-                byStatus,
-                byDifficulty,
-                byScope);
-    }
 
     //////////////
     public Recipe getRecipeById(Long id) {// admin only

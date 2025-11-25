@@ -2,6 +2,7 @@ package com.example.cooking.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -9,8 +10,15 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.cooking.common.enums.Difficulty;
+import com.example.cooking.common.enums.Scope;
+import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.DailyTotalStat;
+import com.example.cooking.dto.RecipeDifficultyCountDTO;
+import com.example.cooking.dto.RecipeScopeCountDTO;
+import com.example.cooking.dto.RecipeStatusCountDTO;
 import com.example.cooking.dto.projection.RecipeDailyStat;
+import com.example.cooking.dto.response.RecipeStatisticsDTO;
 import com.example.cooking.dto.response.RecipeStatsResponse;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Recipe;
@@ -26,7 +34,59 @@ public class RecipeStatsService {
 
     private final RecipeDailyViewRepository dailyViewRepository;
     private final RecipeRepository recipeRepositoty;
-    private final AccessService accessService;
+    private final RecipeRepository recipeRepository;
+        ///////// thống kê cho chef///////////
+public RecipeStatisticsDTO getStatisticsForUser(Long userId) {
+
+    // tổng số
+    Long totalRecipes = recipeRepository.countAllByUser(userId);
+    Long totalViews = recipeRepository.countTotalViewsByUser(userId);
+    Long totalLikes = recipeRepository.countTotalLikesByUser(userId);
+
+    // Status
+    Map<Status, Long> statusMap = Arrays.stream(Status.values())
+            .collect(Collectors.toMap(
+                    status -> status,
+                    status -> 0L
+            ));
+    recipeRepository.countByStatusForUser(userId).forEach(r ->
+            statusMap.put(r.getStatus(), r.getCount())
+    );
+    List<RecipeStatusCountDTO> statusList = statusMap.entrySet().stream()
+            .map(e -> new RecipeStatusCountDTO(e.getKey(), e.getValue()))
+            .toList();
+
+    // Difficulty
+    Map<Difficulty, Long> difficultyMap = Arrays.stream(Difficulty.values())
+            .collect(Collectors.toMap(d -> d, d -> 0L));
+    recipeRepository.countByDifficultyForUser(userId).forEach(r ->
+            difficultyMap.put(r.getDifficulty(), r.getCount())
+    );
+    List<RecipeDifficultyCountDTO> difficultyList = difficultyMap.entrySet().stream()
+            .map(e -> new RecipeDifficultyCountDTO(e.getKey(), e.getValue()))
+            .toList();
+
+    // Scope
+    Map<Scope, Long> scopeMap = Arrays.stream(Scope.values())
+            .collect(Collectors.toMap(s -> s, s -> 0L));
+    recipeRepository.countByScopeForUser(userId).forEach(r ->
+            scopeMap.put(r.getScope(), r.getCount())
+    );
+    List<RecipeScopeCountDTO> scopeList = scopeMap.entrySet().stream()
+            .map(e -> new RecipeScopeCountDTO(e.getKey(), e.getValue()))
+            .toList();
+
+    return new RecipeStatisticsDTO(
+            totalRecipes,
+            totalViews != null ? totalViews : 0L,
+            totalLikes != null ? totalLikes : 0L,
+            statusList,
+            difficultyList,
+            scopeList
+    );
+}
+
+
 
     public List<RecipeDailyStat> getAuthorStatsLastDays(Long authorId, Integer daysBack) {
         LocalDate toDate = LocalDate.now();
