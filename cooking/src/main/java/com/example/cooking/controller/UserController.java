@@ -15,10 +15,9 @@ import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.request.UpdateProfileRequest;
-import com.example.cooking.dto.response.RecipeStatisticsDTO;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.AuthService;
-import com.example.cooking.service.RecipeService;
+
 import com.example.cooking.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final RecipeService recipeService;
     private final AuthService authService;
 
     @GetMapping("/welcome")
@@ -57,14 +55,6 @@ public class UserController {
         return ApiResponse.ok(user);
     }
 
-    @GetMapping("/statistics")
-    public ResponseEntity<ApiResponse<RecipeStatisticsDTO>> getMyRecipeStatistics(
-            @AuthenticationPrincipal MyUserDetails currentUser) {
-
-        RecipeStatisticsDTO stats = recipeService.getStatisticsForUser(currentUser.getId());
-        return ApiResponse.ok(stats);
-    }
-
     @Operation(
         summary = "Tìm kiếm người dùng",
         description = "API cho phép tìm kiếm người dùng dựa trên từ khóa với phân trang và sắp xếp."
@@ -82,6 +72,10 @@ public class UserController {
     }
 
     @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+        summary = "Cập nhật hồ sơ người dùng",
+        description = "API cho phép người dùng cập nhật thông tin hồ sơ cá nhân, bao gồm tên hiển thị, tiểu sử và ảnh đại diện."
+    )
     public ResponseEntity<?> updateProfile(
             @ModelAttribute UpdateProfileRequest request,
             @AuthenticationPrincipal MyUserDetails currentUser) {
@@ -97,7 +91,6 @@ public class UserController {
         String result = userService.upgradeToChef(currentUser.getId());
         return ApiResponse.ok(result);
     }
-
 
 
 }

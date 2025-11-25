@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 public class RecipeStatisticsDTO {
     private Long totalRecipes;
     private Long totalViews;
+    private Long totalLikes;
     private Map<String, Long> byStatus;
     private Map<String, Long> byDifficulty;
     private Map<String, Long> byScope;
-    private Long createdLast7Days;
 }

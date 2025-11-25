@@ -75,9 +75,9 @@ public class AdminController {
         RecipeDetailResponse recipeResponse = recipeMapper.toRecipeResponse(recipeService.getRecipeById(id));
         return ApiResponse.ok(recipeResponse);
     }
-    //hàm cho thống kê    
-    @GetMapping("/statistics")
-    public ResponseEntity<ApiResponse<RecipeStatisticsDTO>> getRecipeStatistics() {
-        return ApiResponse.ok(recipeService.getRecipeStatistics());
-    }
+    // //hàm cho thống kê    
+    // @GetMapping("/statistics")
+    // public ResponseEntity<ApiResponse<RecipeStatisticsDTO>> getRecipeStatistics() {
+    //     return ApiResponse.ok(recipeService.getRecipeStatistics());
+    // }
 }

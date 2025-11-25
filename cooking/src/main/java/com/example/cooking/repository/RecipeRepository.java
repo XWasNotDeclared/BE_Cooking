@@ -152,6 +152,9 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
     @Query("SELECT COUNT(r) FROM Recipe r WHERE r.user.id = :userId AND r.createdAt >= :fromDate")
     Long countCreatedSinceForUser(@Param("userId") Long userId, @Param("fromDate") LocalDateTime fromDate);
 
+    @Query("SELECT COUNT(rl) FROM RecipeLike rl WHERE rl.recipe.user.id = :userId")
+    Long countTotalLikesByUser(@Param("userId") Long userId);
+
     ///////23_11////
 
 
