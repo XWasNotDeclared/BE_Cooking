@@ -14,6 +14,8 @@ public class StepDTO {
     @NotBlank
     private String description;
 
+    private Long stepTime;
+
     private List<String> imageUrls;
 
 }

@@ -13,6 +13,8 @@ public class StepRequestDTO {
     @NotNull
     private Integer stepNumber;
 
+    private Long stepTime;
+
     @NotBlank
     private String description;
 
