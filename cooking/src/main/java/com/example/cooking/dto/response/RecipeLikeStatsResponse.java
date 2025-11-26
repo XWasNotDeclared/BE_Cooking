@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class RecipeStatsResponse {
-    private List<RecipeDailyStat> dailyStats; // Lượt xem theo từng ngày
-    private Long totalViews;                  // Tổng lượt xem
+public class RecipeLikeStatsResponse {
+    private List<RecipeDailyStat> dailyStats; // Lượt Like theo từng ngày
+    private Long totalLike;                  // Tổng lượt like  
 }

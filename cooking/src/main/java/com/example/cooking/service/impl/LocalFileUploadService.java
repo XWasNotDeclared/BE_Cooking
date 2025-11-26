@@ -120,6 +120,23 @@ public class LocalFileUploadService implements UploadFileService {
         }
     }
 
+    @Override
+    public boolean isValidFileUrl(String fileUrl, FileType type) {
+        if (fileUrl == null || fileUrl.isBlank()) return false;
+
+        // URL phải bắt đầu bằng '/uploads/...'
+        String requiredPrefix = "/" + getFolderByType(type) + "/";
+
+        if (!fileUrl.startsWith(requiredPrefix)) {
+            return false;
+        }
+
+        // Check file tồn tại thật
+        Path filePath = Paths.get(System.getProperty("user.dir"), fileUrl.replaceFirst("/", ""));
+        return Files.exists(filePath);
+    }
+
+
     /**
      * Xác định folder lưu theo type
      */

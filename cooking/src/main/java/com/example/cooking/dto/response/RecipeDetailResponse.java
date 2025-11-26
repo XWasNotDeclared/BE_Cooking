@@ -38,6 +38,8 @@ public class RecipeDetailResponse {
 
     private String imageUrl;
 
+    private String videoUrl;
+
     private Long views = 1L;
 
     private Scope scope;

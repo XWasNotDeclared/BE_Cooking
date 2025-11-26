@@ -8,12 +8,12 @@ import com.example.cooking.dto.projection.RecipeDailyStat;
 import lombok.Data;
 
 @Data
-public class DailyTotalStat {
+public class DailyTotalViewStat {
     private LocalDate date;
     private Long totalView;
     private List<RecipeDailyStat> details;
 
-    public DailyTotalStat(LocalDate date, Long totalView, List<RecipeDailyStat> details) {
+    public DailyTotalViewStat(LocalDate date, Long totalView, List<RecipeDailyStat> details) {
         this.date = date;
         this.totalView = totalView;
         this.details = details;

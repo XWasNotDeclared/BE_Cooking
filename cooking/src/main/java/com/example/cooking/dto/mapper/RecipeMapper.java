@@ -75,11 +75,9 @@ public abstract class RecipeMapper {
 
 
     @AfterMapping
-    protected void addLikeCountAndSaveCountAndAddBaseURLImage(@MappingTarget RecipeDetailResponse response, Recipe entity) {
-
-        if (entity.getImageUrl() != null) {
-            response.setImageUrl(appProperties.getStaticBaseUrl() + entity.getImageUrl());
-        }
+    protected void addBaseUrl(@MappingTarget RecipeDetailResponse response, Recipe entity) {
+        response.setImageUrl(ensureFullUrl(entity.getImageUrl()));
+        response.setVideoUrl(ensureFullUrl(entity.getVideoUrl()));
     }
 
 
@@ -100,9 +98,16 @@ public abstract class RecipeMapper {
 
     @AfterMapping
     protected void addFullImageURL(@MappingTarget RecipeSummaryDTO response, Recipe entity) {
-        if (entity.getImageUrl() != null) {
-            response.setImageUrl(appProperties.getStaticBaseUrl() + entity.getImageUrl());
+        response.setImageUrl(ensureFullUrl(entity.getImageUrl()));
+    }
+
+        // --- Phương thức tiện ích kiểm tra URL ---
+    private String ensureFullUrl(String url) {
+        if (url == null || url.isEmpty()) return url;
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            return url;
         }
+        return appProperties.getStaticBaseUrl() + url;
     }
 
 }

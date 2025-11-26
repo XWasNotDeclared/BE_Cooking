@@ -73,6 +73,10 @@ public class Recipe {
     @Column(name= "image_url", nullable = true)
     private String imageUrl;
 
+    @Column(name = "video_url", nullable = true)
+    private String videoUrl;
+
+
     @Column(name = "views", nullable = false)
     private Long views = 0L;
 

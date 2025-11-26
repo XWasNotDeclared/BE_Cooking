@@ -34,7 +34,8 @@ public class NewRecipeRequest {
     private Scope scope;
     
     private MultipartFile image;
-    
+    private String videoUrl;
+
 
     @NotNull
     private List<StepRequestDTO> steps;

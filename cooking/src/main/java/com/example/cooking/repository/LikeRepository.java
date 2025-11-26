@@ -1,5 +1,6 @@
 package com.example.cooking.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -11,7 +12,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.example.cooking.dto.projection.RecipeDailyStat;
 import com.example.cooking.model.Recipe;
 import com.example.cooking.model.RecipeLike;
 import com.example.cooking.dto.projection.RecipeLikesProjection;
@@ -92,4 +93,29 @@ public interface LikeRepository extends JpaRepository<RecipeLike, Long> {
         Page<Recipe> findRecipesByUserId(
                         @Param("userId") Long userId,
                         Pageable pageable);
+
+        @Query("SELECT DATE(l.createdAt) AS date, COUNT(l.id) AS count, l.recipe.id AS recipeId " +
+                        "FROM RecipeLike l " +
+                        "WHERE l.recipe.user.id = :authorId " +
+                        "AND l.createdAt BETWEEN :fromDate AND :toDate " +
+                        "GROUP BY DATE(l.createdAt), l.recipe.id " +
+                        "ORDER BY DATE(l.createdAt), l.recipe.id")
+        List<RecipeDailyStat> getAuthorDailyLikeStats(
+                        @Param("authorId") Long authorId,
+                        @Param("fromDate") LocalDateTime fromDate,
+                        @Param("toDate") LocalDateTime toDate);
+
+        @Query("SELECT DATE(l.createdAt) AS date, COUNT(l.id) AS count, l.recipe.id AS recipeId " +
+       "FROM RecipeLike l " +
+       "WHERE l.recipe.id = :recipeId " +
+       "AND l.createdAt BETWEEN :fromDate AND :toDate " +
+       "GROUP BY DATE(l.createdAt), l.recipe.id " +
+       "ORDER BY DATE(l.createdAt) DESC")
+        List<RecipeDailyStat> getRecipeDailyLikeStats(
+                @Param("recipeId") Long recipeId,
+                @Param("fromDate") LocalDateTime fromDate,
+                @Param("toDate") LocalDateTime toDate
+        );
+
+
 }

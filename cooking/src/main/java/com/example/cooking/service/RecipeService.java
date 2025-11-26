@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -18,26 +17,20 @@ import com.example.cooking.common.enums.Difficulty;
 import com.example.cooking.common.enums.FileType;
 import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
-import com.example.cooking.dto.RecipeIngredientDTO;
 import com.example.cooking.dto.mapper.RecipeMapper;
 import com.example.cooking.dto.request.NewRecipeRequest;
-import com.example.cooking.dto.request.RecipeIngredientRequestDTO;
 import com.example.cooking.dto.request.StepRequestDTO;
-import com.example.cooking.dto.request.UpdateRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
-import com.example.cooking.dto.response.RecipeStatisticsDTO;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.event.RecipeUpdatedEvent;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Recipe;
 import com.example.cooking.model.RecipeDailyView;
-import com.example.cooking.model.RecipeIngredient;
 import com.example.cooking.model.RecipeView;
 import com.example.cooking.model.Step;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.LikeRepository;
 import com.example.cooking.repository.RecipeDailyViewRepository;
-import com.example.cooking.repository.RecipeIngredientRepository;
 import com.example.cooking.repository.RecipeRepository;
 import com.example.cooking.repository.RecipeSearchIndexRepository;
 import com.example.cooking.repository.RecipeViewRepository;
@@ -61,19 +54,31 @@ public class RecipeService {
     private final LikeRepository likeRepository;
     private final RecipeViewRepository recipeViewRepository;
     private final RecipeDailyViewRepository recipeDailyViewRepository;
-    private final RecipeIngredientRepository ingredientRepository;
 
     @Transactional
     public Long addNewRecipe(MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
         User user = userRepository.getReferenceById(currentUser.getId());
         Recipe recipe = recipeMapper.toRecipe(newRecipeRequest);
-        // thieu anh chinh va steps
+        // them anh chinh
         if (!(newRecipeRequest.getImage() == null || newRecipeRequest.getImage().isEmpty())) {
             String mainImageUrl = uploadFileService.saveFile(newRecipeRequest.getImage(), FileType.RECIPE);
             recipe.setImageUrl(mainImageUrl);
         } else
             recipe.setImageUrl("/static_resource/public/upload/avatars/avatar-holder.png");
+        
+        // Update video URL
+        String videoUrl = newRecipeRequest.getVideoUrl();
+        if (videoUrl != null && !videoUrl.isBlank()) {
+            boolean valid = uploadFileService.isValidFileUrl(videoUrl, FileType.RECIPEVIDEO);
 
+            if (!valid) {
+                throw new CustomException("Invalid or non-existing video file");
+            }
+
+            recipe.setVideoUrl(videoUrl);
+        }
+
+        //them steps
         List<StepRequestDTO> stepDTOs = newRecipeRequest.getSteps();
         for (int i = 0; i < stepDTOs.size(); i++) {
             StepRequestDTO stepRequestDTO = stepDTOs.get(i);
@@ -424,7 +429,6 @@ public class RecipeService {
     // byDifficulty,
     // byScope);
     // }
-
 
     //////////////
     public Recipe getRecipeById(Long id) {// admin only
