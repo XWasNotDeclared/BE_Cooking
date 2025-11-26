@@ -15,9 +15,10 @@ import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.request.UpdateProfileRequest;
+import com.example.cooking.model.ChefRequest;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.AuthService;
-
+import com.example.cooking.service.ChefRequestService;
 import com.example.cooking.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserService userService;
     private final AuthService authService;
+    private final ChefRequestService chefRequestService;
 
     @GetMapping("/welcome")
     public ResponseEntity<ApiResponse<String>> welcomeUser() {
@@ -83,14 +85,22 @@ public class UserController {
         return ApiResponse.ok(updated);
     }
 
-    @PostMapping("/upgrade-to-chef")
-    //TODO: NEN DE THANH ADMIN DUYET
-    public ResponseEntity<?> upgradeToChef(
-            @AuthenticationPrincipal MyUserDetails currentUser
-        ) {
-        String result = userService.upgradeToChef(currentUser.getId());
-        return ApiResponse.ok(result);
-    }
+    // @PostMapping("/upgrade-to-chef")
+    // //TODO: NEN DE THANH ADMIN DUYET
+    // public ResponseEntity<?> upgradeToChef(
+    //         @AuthenticationPrincipal MyUserDetails currentUser
+    //     ) {
+    //     String result = userService.upgradeToChef(currentUser.getId());
+    //     return ApiResponse.ok(result);
+    // }
 
+        /**
+     * User gửi yêu cầu trở thành Chef
+     */
+    @PostMapping("/chef/request")
+    public ResponseEntity<?> sendChefRequest(@AuthenticationPrincipal MyUserDetails currentUser) {
+            ChefRequest request = chefRequestService.requestToBecomeChef(currentUser.getId());
+            return ApiResponse.ok("Yêu cầu đã được gửi thành công.");
+    }
 
 }

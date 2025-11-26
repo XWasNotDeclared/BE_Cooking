@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.cooking.common.ApiResponse;
-import com.example.cooking.dto.DailyTotalStat;
+import com.example.cooking.dto.DailyTotalLikeStat;
+import com.example.cooking.dto.DailyTotalViewStat;
+import com.example.cooking.dto.response.RecipeLikeStatsResponse;
 import com.example.cooking.dto.response.RecipeStatisticsDTO;
-import com.example.cooking.dto.response.RecipeStatsResponse;
+import com.example.cooking.dto.response.RecipeViewStatsResponse;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.RecipeService;
 import com.example.cooking.service.RecipeStatsService;
@@ -44,11 +46,11 @@ public class RecipeStatisticsController {
         summary = "Thống kê lượt xem công thức trong những ngày gần đây",
         description = "API cho phép người dùng lấy thống kê về lượt xem các công thức của họ trong một khoảng thời gian nhất định."
     )
-    public List<DailyTotalStat> getAuthorStatsLastDays(
+    public List<DailyTotalViewStat> getDailyTotalViewStats(
             @AuthenticationPrincipal MyUserDetails currentUser,
             @RequestParam(required = false, defaultValue = "7") Integer daysBack
     ) {
-        return recipeStatsService.getDailyTotalStats(currentUser.getId(), daysBack);
+        return recipeStatsService.getDailyTotalViewStats(currentUser.getId(), daysBack);
     }
 
     @GetMapping("/{recipeId}/views")
@@ -56,11 +58,29 @@ public class RecipeStatisticsController {
         summary = "Thống kê lượt xem theo ngày của một công thức",
         description = "Trả về lượt xem của recipe theo từng ngày trong n ngày gần nhất, đồng thời trả tổng lượt xem."
     )
-    public RecipeStatsResponse getRecipeStats(
+    public RecipeViewStatsResponse getRecipeViewsStats(
         @AuthenticationPrincipal MyUserDetails currentUser,
             @PathVariable Long recipeId,
             @RequestParam(required = false, defaultValue = "7") Integer daysBack
     ) {
         return recipeStatsService.getRecipeStatsResponse(recipeId, daysBack, currentUser);
     }
+
+    @GetMapping("/recipes/likes")
+    public List<DailyTotalLikeStat> getAuthorLikeStats(
+            @AuthenticationPrincipal MyUserDetails currentUser,
+            @RequestParam(defaultValue = "7") Integer daysBack
+    ) {
+        return recipeStatsService.getDailyTotalLikeStats(currentUser.getId(), daysBack);
+    }
+
+    @GetMapping("/{recipeId}/likes")
+    public RecipeLikeStatsResponse getRecipeLikeStats(
+            @AuthenticationPrincipal MyUserDetails currentUser,
+            @PathVariable Long recipeId,
+            @RequestParam(defaultValue = "7") Integer daysBack
+    ) {
+        return recipeStatsService.getRecipeLikesResponse(recipeId, daysBack, currentUser);
+    }
+
 }
