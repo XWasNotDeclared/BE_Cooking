@@ -85,6 +85,7 @@ public class RecipeService {
             // Chuyển đổi StepRequestDTO thành Step entity
             Step step = new Step();
             step.setDescription(stepRequestDTO.getDescription());
+            step.setStepTime(stepRequestDTO.getStepTime());
             step.setStepNumber(i + 1); // Đặt số thứ tự bước (bắt đầu từ 1)
             step.setRecipe(recipe); // Thiết lập mối quan hệ với Recipe
             if (!(stepRequestDTO.getImages() == null || stepRequestDTO.getImages().isEmpty())) {

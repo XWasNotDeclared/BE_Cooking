@@ -35,6 +35,9 @@ public class Step {
     @Column(name = "step_number", nullable = false)
     private Integer stepNumber;
 
+    @Column(name= "step_time", nullable = true)
+    private Long stepTime;
+
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     @Lob
     private String description;
