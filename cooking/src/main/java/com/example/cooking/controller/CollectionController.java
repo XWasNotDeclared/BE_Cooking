@@ -18,10 +18,12 @@ import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.CollectionDTO;
 import com.example.cooking.dto.request.CollectionRequest;
+import com.example.cooking.dto.response.CollectionDetailWithRecipeDTO;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.CollectionService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -77,6 +79,7 @@ public class CollectionController {
     }
 
     @GetMapping("/{collectionId}/recipes")
+    @Operation(summary = "Lấy list recipe của collection")
     public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getRecipesByCollectionId(@AuthenticationPrincipal MyUserDetails currentUser,
                                 @PathVariable Long collectionId,
                                 @RequestParam(defaultValue = "0") int page,
@@ -86,4 +89,16 @@ public class CollectionController {
         return ApiResponse.ok(dtos);
                                 }
 
+    @GetMapping("/{collectionId}/recipes-and-info")
+    @Operation(summary = "Lấy list recipe và cả infor của collection")
+    public ResponseEntity<ApiResponse<CollectionDetailWithRecipeDTO>> getRecipesAndInforByCollectionId(@AuthenticationPrincipal MyUserDetails currentUser,
+                                @PathVariable Long collectionId,
+                                @RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "10") int size){
+        Pageable pageable = PageRequest.of(page, size);
+        PageDTO<RecipeSummaryDTO> dtos = collectionService.getRecipesByCollectionId(currentUser, pageable, collectionId);
+        CollectionDTO collectionDTO = collectionService.getCollectionsById(currentUser, collectionId);
+
+        return ApiResponse.ok(new CollectionDetailWithRecipeDTO(collectionDTO,dtos));
+                                }
 }
