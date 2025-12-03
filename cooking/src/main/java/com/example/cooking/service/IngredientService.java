@@ -2,11 +2,13 @@ package com.example.cooking.service;
 
 import java.util.Optional;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.IngredientDTO;
+import com.example.cooking.dto.projection.IngredientTopUsageProjection;
 import com.example.cooking.model.Ingredient;
 import com.example.cooking.repository.IngredientRepository;
 import com.example.cooking.util.IngredientNormalizer;
@@ -42,5 +44,11 @@ public class IngredientService {
     public PageDTO<IngredientDTO> searchByKeyWord(String keyword, Pageable pageable){
         Page<IngredientDTO> page = ingredientRepository.findByNameContainingIgnoreCase(keyword, pageable);
         return new PageDTO<>(page);
+    }
+
+    public PageDTO<IngredientTopUsageProjection> getTop10Ingredients(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<IngredientTopUsageProjection> pageResult = ingredientRepository.findTopIngredientsByRecipeCount(pageable);
+        return new PageDTO<IngredientTopUsageProjection>(pageResult);
     }
 }

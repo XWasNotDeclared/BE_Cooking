@@ -1,6 +1,7 @@
 package com.example.cooking.repository;
 
 import com.example.cooking.dto.IngredientDTO;
+import com.example.cooking.dto.projection.IngredientTopUsageProjection;
 import com.example.cooking.model.Ingredient;
 
 import org.springframework.data.domain.Page;
@@ -9,8 +10,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -32,4 +31,15 @@ public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
            "FROM Ingredient i " +
            "WHERE LOWER(i.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<IngredientDTO> findByNameContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("""
+        SELECT i.id AS id, 
+               i.name AS name, 
+               COUNT(DISTINCT ri.recipe.id) AS recipeCount
+        FROM Ingredient i
+        JOIN i.recipeIngredients ri
+        GROUP BY i.id, i.name
+        ORDER BY recipeCount DESC
+        """)
+    Page<IngredientTopUsageProjection> findTopIngredientsByRecipeCount(Pageable pageable);
 }

@@ -168,7 +168,20 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
     @Query("SELECT COUNT(rl) FROM RecipeLike rl WHERE rl.recipe.user.id = :userId")
     Long countTotalLikesByUser(@Param("userId") Long userId);
 
-    ///////23_11////
+    //////03_12////
+        // Lấy danh sách Recipe theo ingredient id
+    @Query("SELECT DISTINCT r FROM Recipe r " +
+           "JOIN r.recipeIngredients ri " +
+           "JOIN ri.ingredient i " +
+           "WHERE i.id = :ingredientId " +
+           "AND r.scope = :scope " +
+           "AND r.status = :status")
+    Page<Recipe> findRecipesByIngredientIdAndScopeAndStatus(
+            @Param("ingredientId") Long ingredientId,
+            @Param("scope") Scope scope,
+            @Param("status") Status status,
+            Pageable pageable
+    );
 
 
 }
