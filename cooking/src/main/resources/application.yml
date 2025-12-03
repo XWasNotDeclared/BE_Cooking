@@ -20,8 +20,15 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: true  
-
+            enable: true 
+  ai:
+    openai:
+      api-key: ${GROQ_API_KEY}
+      base-url: https://api.groq.com/openai
+      chat:
+        options:
+          model: openai/gpt-oss-20b
+      
   datasource:
     url: jdbc:mysql://localhost:3306/cooking_db
     username: root
@@ -36,11 +43,11 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: true #Test thoi ti tat di nhe mac dinh la true
 
-  # security:
-  #   user:
-  #     name: user
-  #     password: 123
-  #     roles: USER
+ai:
+  modules:
+    chat:
+      enabled: true
+
 app:
   jwt:
     secret: thisismyscretkeyformyownmuahahahahahahahahahahahahahahaha
