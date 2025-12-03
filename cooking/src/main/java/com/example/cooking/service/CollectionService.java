@@ -12,6 +12,7 @@ import com.example.cooking.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -187,6 +188,27 @@ public class CollectionService {
         return new PageDTO<>(page, dtos);
     }
 
+    public CollectionDTO getCollectionsById(MyUserDetails currentUser, Long collectionId) {
+        
+        Collection collection = collectionRepository.findById(collectionId).orElseThrow(()-> new CustomException("Khong tim thay colelction voi id nay"));
+        boolean viewAble = true;
+        if (!collection.isPublic()){
+            viewAble = currentUser.getId().equals(collection.getUser().getId());
+        }
+        if (!viewAble){
+            throw new CustomException("Ban khong co quyen xem collection nay");
+        }
+
+        List<Collection> tempListCollections = new ArrayList<>();
+        tempListCollections.add(collection);
+        // 3. Enrich all
+        // map sang DTO
+        List<CollectionDTO> dtos = collectionMapper.toListCollectionDTO(tempListCollections);
+        // enrich & to DTO
+        dtos = enrichCollectionDTOs(dtos);
+        // return
+        return dtos.get(0);
+    }
 
     public PageDTO<RecipeSummaryDTO> getRecipesByCollectionId(MyUserDetails currentUser, Pageable pageable,
             Long collectionId) {

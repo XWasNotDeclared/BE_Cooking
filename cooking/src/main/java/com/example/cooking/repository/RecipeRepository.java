@@ -18,6 +18,7 @@ import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.projection.RecipeCategoryProjection;
 import com.example.cooking.dto.projection.RecipeDifficultyCount;
+import com.example.cooking.dto.projection.RecipeIngredientSearchProjection;
 import com.example.cooking.dto.projection.RecipePermissionInfoProjection;
 import com.example.cooking.dto.projection.RecipeScopeCount;
 import com.example.cooking.dto.projection.RecipeStatusCount;
@@ -183,5 +184,77 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
             Pageable pageable
     );
 
-
+    //tim kiem theo nguyen lieu
+        @Query(value = """
+        WITH input AS (
+                SELECT ingredient_id
+                FROM ingredients
+                WHERE ingredient_id IN (:ingredientIds)
+        ),
+        recipe_match AS (
+                SELECT 
+                r.recipe_id,
+                r.title,
+                r.description,
+                r.image_url,
+                r.prep_time,
+                r.cook_time,
+                r.difficulty,
+                r.servings,
+                r.scope,
+                r.status,
+                r.views,
+                r.created_at,
+                r.updated_at,
+                ri.ingredient_id,
+                i.name,
+                CASE WHEN inp.ingredient_id IS NOT NULL THEN 1 ELSE 0 END AS isMatch
+                FROM recipes r
+                JOIN recipe_ingredients ri ON r.recipe_id = ri.recipe_id
+                JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
+                LEFT JOIN input inp ON ri.ingredient_id = inp.ingredient_id
+        )
+        SELECT
+                rm.recipe_id,
+                rm.title,
+                rm.description,
+                rm.image_url,
+                rm.prep_time,
+                rm.cook_time,
+                rm.difficulty,
+                rm.servings,
+                rm.scope,
+                rm.status,
+                rm.views,
+                rm.created_at,
+                rm.updated_at,
+                GROUP_CONCAT(DISTINCT CASE WHEN isMatch = 1 THEN name END) AS matchedIngredients,
+                (
+                SELECT GROUP_CONCAT(i.name)
+                FROM ingredients i
+                JOIN input inp ON i.ingredient_id = inp.ingredient_id
+                WHERE inp.ingredient_id NOT IN (
+                        SELECT ingredient_id 
+                        FROM recipe_match rm2 
+                        WHERE rm2.recipe_id = rm.recipe_id 
+                        AND rm2.isMatch = 1
+                )
+                ) AS missingFromInput,
+                GROUP_CONCAT(DISTINCT CASE WHEN isMatch = 0 THEN name END) AS missingFromRecipe,
+                SUM(isMatch) AS matchedCount,
+                COUNT(*) AS totalIngredients
+        FROM recipe_match rm
+        GROUP BY rm.recipe_id, rm.title
+        HAVING matchedCount > 0
+        ORDER BY matchedCount DESC
+        """,
+        countQuery = """
+        SELECT COUNT(DISTINCT rm.recipe_id)
+        FROM recipe_match rm
+        """,
+        nativeQuery = true)
+        Page<RecipeIngredientSearchProjection> findRecipesByIngredientIds(
+        @Param("ingredientIds") List<Long> ingredientIds,
+        Pageable pageable
+        );
 }

@@ -11,6 +11,7 @@ import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.cooking.config.AppProperties;
+import com.example.cooking.dto.projection.RecipeIngredientSearchProjection;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
@@ -72,6 +73,16 @@ public abstract class RecipeMapper {
 
     public abstract List<RecipeSummaryDTO> toSummaryDTOList(List<Recipe> entities);
 
+
+    // @Mapping(target = "user", source = "user")
+    @Mapping(target = "categories", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "likeCount", ignore = true)
+    @Mapping(target = "commentCount", ignore = true)
+    @Mapping(target = "likedByCurrentUser", ignore = true)
+    @Mapping(target = "saveCount", ignore = true)
+    @Mapping(target = "savedByCurrentUser", ignore = true)
+    public abstract RecipeSummaryDTO toSummaryDTO (RecipeIngredientSearchProjection entity);
 
 
 
