@@ -5,7 +5,7 @@ import com.example.cooking.common.PageDTO;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.model.Recipe;
 import com.example.cooking.security.MyUserDetails;
-import com.example.cooking.service.MeiliRecipeService;
+// import com.example.cooking.service.MeiliRecipeService;
 import com.example.cooking.service.RecipeService;
 import com.meilisearch.sdk.model.SearchResult;
 
@@ -31,7 +31,7 @@ import java.util.Map;
 public class SearchController {
 
     private final RecipeService recipeService;
-     private final MeiliRecipeService meiliService;
+    //  private final MeiliRecipeService meiliService;
 
 
     // @PageableDefault(page = 0, size = 20) Pageable pageable)

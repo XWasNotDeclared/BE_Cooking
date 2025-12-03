@@ -19,6 +19,7 @@ import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.mapper.RecipeMapper;
 import com.example.cooking.dto.request.NewRecipeRequest;
+import com.example.cooking.dto.request.RecipeIngredientRequestDTO;
 import com.example.cooking.dto.request.StepRequestDTO;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
@@ -54,6 +55,7 @@ public class RecipeService {
     private final LikeRepository likeRepository;
     private final RecipeViewRepository recipeViewRepository;
     private final RecipeDailyViewRepository recipeDailyViewRepository;
+    private final RecipeIngredientService recipeIngredientService;
 
     @Transactional
     public Long addNewRecipe(MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
@@ -99,8 +101,11 @@ public class RecipeService {
         recipe.setStatus(Status.APPROVED);
         recipe.setDifficulty(Difficulty.EASY);
         recipe.setUser(user);
-        // recipe.getSteps().forEach(step -> step.setRecipe(recipe));
-        recipe.getRecipeIngredients().forEach(ri -> ri.setRecipe(recipe));
+        //thêm nguyên liệu
+        for (RecipeIngredientRequestDTO dto : newRecipeRequest.getRecipeIngredients()) {
+            recipeIngredientService.createFromDTO(dto, recipe);
+        }
+
         Recipe saved = recipeRepository.save(recipe);
         // phat event sua cong thuc
         eventPublisher.publishEvent(new RecipeUpdatedEvent(saved.getId()));

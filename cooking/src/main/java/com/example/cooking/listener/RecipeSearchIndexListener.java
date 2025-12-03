@@ -29,7 +29,7 @@ public class RecipeSearchIndexListener {
         recipe.getCategories().forEach(t -> sb.append(t.getName()).append(" "));
         
         recipe.getRecipeIngredients().forEach(t->{
-            sb.append(t.getRawName()).append(" ");
+            sb.append(t.getIngredient().getName()).append(" ").append(t.getNote());
         });
 
         
