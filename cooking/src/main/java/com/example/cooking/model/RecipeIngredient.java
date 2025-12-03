@@ -31,14 +31,20 @@ public class RecipeIngredient {
     @Column(name = "unit")
     private String unit;
 
-    @Column(name = "raw_name")
+    @Column(name = "display_order", nullable = false)
+    private Integer displayOrder;
+
+    @Column(name = "raw_name", nullable = false)
     private String rawName;
 
-    @Column(name = "display_order")
-    private Integer displayOrder;
+    @Column(name = "note", nullable = true)
+    private String note;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id", nullable = false)
     private Recipe recipe;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ingredient_id", nullable = false)
+    private Ingredient ingredient;
 }

@@ -46,6 +46,7 @@ public abstract class RecipeMapper {
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "imageUrl", ignore = true)
     @Mapping(target = "steps", ignore = true) // Steps sẽ được map riêng
+    @Mapping(target = "recipeIngredients", ignore = true) //map riêng
     public abstract Recipe toRecipe(NewRecipeRequest entity);
     
 

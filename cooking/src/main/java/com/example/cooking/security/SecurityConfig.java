@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll() // Allow unauthenticated access to /auth endpoints
                         .requestMatchers("/api/upload/**").permitAll()
+                        .requestMatchers("/api/chatbot/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/public/**").permitAll() // Allow unauthenticated access to GET /recipes
                         .requestMatchers("/v3/api-docs/**","/swagger-ui/**").permitAll()
                         .requestMatchers("/static_resource/public/upload/**").permitAll()
