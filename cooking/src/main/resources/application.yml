@@ -22,6 +22,9 @@ spring:
           starttls:
             enable: true 
   ai:
+    model:
+     chat: openai #groq và chatGPT
+    #  chat: google-genai # gemini
     openai:
       api-key: ${GROQ_API_KEY}
       base-url: https://api.groq.com/openai
@@ -51,8 +54,8 @@ ai:
 app:
   jwt:
     secret: thisismyscretkeyformyownmuahahahahahahahahahahahahahahaha
-    expiration: 3600000 # 1 hour in milliseconds
-    refresh-expiration: 360000000
+    expiration: 3600000000 #  in milliseconds
+    refresh-expiration: 360000000000
     header: Authorization
     prefix: Bearer
   admin:
@@ -73,3 +76,10 @@ app:
       category-image: static_resource/public/upload/category_images
       temp: static_resource/public/upload/temp
   static-base-url: http://localhost:8080
+
+pinecone:
+  api-key: ${PINECONE_API_KEY}
+  host: test001-jis24m5.svc.aped-4627-b74a.pinecone.io # Ví dụ: my-index-1234.svc.pinecone.io <-- THAY THẾ
+  PINECONE_ENVIRONMENT: us-east-1
+  index-name: test001 # Tên Index bạn muốn dùng <-- THAY THẾ
+  namespace: example-namespace # Namespace mặc định

@@ -18,14 +18,16 @@ import com.example.cooking.model.RoleEntity;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.RoleRepository;
 import com.example.cooking.repository.UserRepository;
+import com.example.cooking.service.PineconeDataService;
 
 @Configuration
+
 public class DataInitializer {
     @Bean
     CommandLineRunner init(UserRepository userRepository,
                         RoleRepository roleRepository, 
                             PasswordEncoder passwordEncoder, 
-                            AdminProperties adminProperties){
+                            AdminProperties adminProperties, PineconeDataService dataService){
         return args -> {
             // 1. Insert default roles if not exists
             Arrays.asList("USER", "CHEF", "ADMIN").forEach(roleName -> {
@@ -57,6 +59,19 @@ public class DataInitializer {
                 }
                 userRepository.save(admin);
             };
+        //TEST ZONE- an toàn để xóa
+        // System.out.println("--- BẮT ĐẦU TƯƠNG TÁC PINECONE ---");
+        
+        // // 1. Thêm/Cập nhật dữ liệu
+        // dataService.upsertSampleData();
+        
+        // // 2. Đọc/Tìm kiếm dữ liệu
+        // // LƯU Ý: Chức năng này chỉ chạy thành công nếu bạn có vector hợp lệ để query
+        // // dataService.querySampleData(); 
+        
+        // System.out.println("--- KẾT THÚC ---");
+        //END_TEST_ZONE
+        
         };
     }
 }
