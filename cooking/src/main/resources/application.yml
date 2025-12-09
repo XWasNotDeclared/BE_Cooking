@@ -83,7 +83,7 @@ app:
       category-image: static_resource/public/upload/category_images
       temp: static_resource/public/upload/temp
   static-base-url: http://localhost:8080
-  frontend-url: https://your-react-frontend-domain.com # Thay thế bằng URL frontend của bạn
+  frontend-url: http://localhost:3000 # Thay thế bằng URL frontend của bạn
 
 
 pinecone:
@@ -95,8 +95,10 @@ pinecone:
 
 # VNPay Configuration (Sandbox)
 vnpay:
-  tmn-code: NJJ0R8FS  # Đăng ký tại http://sandbox.vnpayment.vn/devreg/
-  hash-secret: BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW  # Secret key từ VNPAY
+  # tmn-code: NJJ0R8FS  # Đăng ký tại http://sandbox.vnpayment.vn/devreg/
+  # hash-secret: BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW  # Secret key từ VNPAY
+  tmn-code: X1X7JTMK  # Đăng ký tại http://sandbox.vnpayment.vn/devreg/
+  hash-secret: DHUZODON768EZLRV8FJF5ZKMUSQMLT72  # Secret key từ VNPAY
   pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
   return-url: http://localhost:8080/api/payment/vnpay/return
   # return-url:  https://venular-unselfconscious-jalisa.ngrok-free.dev/api/payment/vnpay/return

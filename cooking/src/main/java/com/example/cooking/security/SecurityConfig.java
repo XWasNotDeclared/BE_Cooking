@@ -51,6 +51,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/chatbot/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/payment/**").permitAll()
+                        .requestMatchers("/ipn").permitAll()
+                        .requestMatchers("/ipn/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/public/**").permitAll() // Allow unauthenticated access to GET /recipes
                         .requestMatchers("/v3/api-docs/**","/swagger-ui/**").permitAll()
                         .requestMatchers("/static_resource/public/upload/**").permitAll()
