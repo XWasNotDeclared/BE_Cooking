@@ -221,6 +221,13 @@ public class PaymentController {
                 // VNPAY trả về số tiền đã nhân 100, cần chia lại để hiển thị
                 amount = Long.parseLong(amountStr) / 100;
             }
+            String status = success ? "success" : "fail";
+            String redirectUrl = frontendUrl 
+                    + "/payment-result"
+                    + "?status=" + status
+                    + "&code=" + finalRspCode   // luôn có mã 00, 24, 97...
+                    + "&orderId=" + (txnRef != null ? txnRef : "");
+
             ///////
             String html = """
                     <html>
@@ -257,7 +264,7 @@ public class PaymentController {
                             transactionNo != null ? transactionNo : "",
                             amount != null ? amount.toString() : "0",
                             orderInfo != null ? orderInfo : "",
-                            frontendUrl != null ? frontendUrl : "/");
+                            redirectUrl);
 
             return ResponseEntity.ok()
                     .header("Content-Type", "text/html; charset=UTF-8")

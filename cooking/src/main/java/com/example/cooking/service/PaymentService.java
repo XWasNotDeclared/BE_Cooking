@@ -519,7 +519,6 @@ public class PaymentService {
 
         // Update trạng thái
         if ("00".equals(responseCode) && "00".equals(transactionStatus)) {
-            log.info("HELOOOOOO");
             order.setPaymentStatus(PaymentStatus.SUCCESS);
             order.setPaidAt(LocalDateTime.now());
 
