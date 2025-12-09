@@ -24,14 +24,21 @@ spring:
   ai:
     model:
      chat: openai #groq và chatGPT
-    #  chat: google-genai # gemini
+    #  chat: google-genai # gemini (Đang lỗi)
     openai:
       api-key: ${GROQ_API_KEY}
       base-url: https://api.groq.com/openai
       chat:
         options:
-          model: openai/gpt-oss-20b
-      
+          # model: openai/gpt-oss-120b
+          model: meta-llama/llama-4-maverick-17b-128e-instruct
+    # google:
+    #   genai:
+    #     api-key: ${GOOGLE_GENAI_API_KEY}
+    #     project-id: gen-lang-client-0239165191
+    #     chat:
+    #       options:
+    #         model: gemini-2.0-flash
   datasource:
     url: jdbc:mysql://localhost:3306/cooking_db
     username: root
@@ -49,7 +56,7 @@ spring:
 ai:
   modules:
     chat:
-      enabled: true
+      enabled: false
 
 app:
   jwt:
@@ -76,6 +83,8 @@ app:
       category-image: static_resource/public/upload/category_images
       temp: static_resource/public/upload/temp
   static-base-url: http://localhost:8080
+  frontend-url: https://your-react-frontend-domain.com # Thay thế bằng URL frontend của bạn
+
 
 pinecone:
   api-key: ${PINECONE_API_KEY}
@@ -83,3 +92,21 @@ pinecone:
   PINECONE_ENVIRONMENT: us-east-1
   index-name: test001 # Tên Index bạn muốn dùng <-- THAY THẾ
   namespace: example-namespace # Namespace mặc định
+
+# VNPay Configuration (Sandbox)
+vnpay:
+  tmn-code: NJJ0R8FS  # Đăng ký tại http://sandbox.vnpayment.vn/devreg/
+  hash-secret: BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW  # Secret key từ VNPAY
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: http://localhost:8080/api/payment/vnpay/return
+  # return-url:  https://venular-unselfconscious-jalisa.ngrok-free.dev/api/payment/vnpay/return
+  ipn-url: https://venular-unselfconscious-jalisa.ngrok-free.dev/api/payment/vnpay/ipn  # Phải là URL public có SSL khi production
+  api-transaction-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+  version: 2.1.0
+  command: pay
+  order-type: other
+
+# Chef Upgrade Configuration
+chef:
+  upgrade:
+    price: 100000  # 100,000 VND (sẽ nhân 100 khi gửi sang VNPay)

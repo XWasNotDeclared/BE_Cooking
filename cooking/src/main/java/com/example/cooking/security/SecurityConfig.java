@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/upload/**").permitAll()
                         .requestMatchers("/api/chatbot/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/api/payment/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/public/**").permitAll() // Allow unauthenticated access to GET /recipes
                         .requestMatchers("/v3/api-docs/**","/swagger-ui/**").permitAll()
                         .requestMatchers("/static_resource/public/upload/**").permitAll()
@@ -79,7 +80,9 @@ public class SecurityConfig {
                                             "http://localhost:3000/",
                                             "http://127.0.0.1:5500",
                                             // "http://127.0.0.1:3000",
-                                            "http://26.3.253.161:3000")); // URL
+                                            "http://26.3.253.161:3000",
+                                            "https://*.ngrok-free.dev",
+                                            "http://*.ngrok-free.dev")); // URL
         // config.setAllowedOrigins(List.of("*")); // URL
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

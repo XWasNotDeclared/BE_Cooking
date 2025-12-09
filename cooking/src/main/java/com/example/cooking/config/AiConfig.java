@@ -1,7 +1,7 @@
 package com.example.cooking.config;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,6 +11,7 @@ import com.example.cooking.tools_chatbot.DateTimeTools;
 import com.example.cooking.tools_chatbot.QueryTools;
 @Configuration
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "ai.modules.chat", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class AiConfig {
 
     /**

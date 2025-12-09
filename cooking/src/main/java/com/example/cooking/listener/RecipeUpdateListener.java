@@ -1,22 +1,14 @@
 package com.example.cooking.listener;
 
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import com.example.cooking.repository.RecipeRepository;
-import com.example.cooking.repository.RecipeSearchIndexRepository;
-import com.example.cooking.service.PineconeDataService;
 import com.example.cooking.event.RecipeUpdatedEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import com.example.cooking.model.Recipe;
-import com.example.cooking.model.RecipeSearchIndex;
 
 @Component
 @RequiredArgsConstructor
 public class RecipeUpdateListener {
-    private final RecipeRepository recipeRepo;
-    private final PineconeDataService pineconeDataService;
 
     // @Async // chạy bất đồng bộ trên thread pool riêng
     @EventListener

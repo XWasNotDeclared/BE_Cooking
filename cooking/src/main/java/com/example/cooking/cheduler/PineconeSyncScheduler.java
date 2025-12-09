@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,12 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "ai.modules.chat", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class PineconeSyncScheduler {
     private final OutBoxEventRepository outBoxEventRepository;
     private final PineconeDataService pineconeDataService;
     private final ObjectMapper objectMapper;
 
-    @Scheduled(fixedDelay = 30_000) // 30s
+    @Scheduled(fixedDelay = 180_000) // 180s
     public void syncOutboxToPinecone() {
         log.info("___START SYNC TO PINECONE_VDB___");
         List<OutBoxEvent> events = outBoxEventRepository.findTop100ByProcessedFalseOrderByCreatedAtAsc();

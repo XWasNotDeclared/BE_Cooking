@@ -14,11 +14,12 @@ import org.springframework.stereotype.Component;
 // import com.example.cooking.common.enums.Role;
 import com.example.cooking.common.enums.UserStatus;
 import com.example.cooking.exception.CustomException;
+import com.example.cooking.model.PackageUpgrade;
 import com.example.cooking.model.RoleEntity;
 import com.example.cooking.model.User;
+import com.example.cooking.repository.PackageUpgradeRepository;
 import com.example.cooking.repository.RoleRepository;
 import com.example.cooking.repository.UserRepository;
-import com.example.cooking.service.PineconeDataService;
 
 @Configuration
 
@@ -27,7 +28,9 @@ public class DataInitializer {
     CommandLineRunner init(UserRepository userRepository,
                         RoleRepository roleRepository, 
                             PasswordEncoder passwordEncoder, 
-                            AdminProperties adminProperties, PineconeDataService dataService){
+                            AdminProperties adminProperties, 
+                            PackageUpgradeRepository packageRepository
+                        ){
         return args -> {
             // 1. Insert default roles if not exists
             Arrays.asList("USER", "CHEF", "ADMIN").forEach(roleName -> {
@@ -59,17 +62,25 @@ public class DataInitializer {
                 }
                 userRepository.save(admin);
             };
+
+            // 3. Insert default VIP/CHEF packages if not exists
+        if (packageRepository.count() == 0) {
+            PackageUpgrade vip1 = new PackageUpgrade();
+            vip1.setName("CHEF 1 Month");
+            vip1.setDescription("Full access 1 tháng cho CHEF");
+            vip1.setPrice(150000L);
+            vip1.setDurationDays(30);
+
+            PackageUpgrade vip3 = new PackageUpgrade();
+            vip3.setName("CHEF 3 Months");
+            vip3.setDescription("Full access 3 tháng cho CHEF");
+            vip3.setPrice(400000L);
+            vip3.setDurationDays(90);
+
+            packageRepository.save(vip1);
+            packageRepository.save(vip3);
+        }
         //TEST ZONE- an toàn để xóa
-        // System.out.println("--- BẮT ĐẦU TƯƠNG TÁC PINECONE ---");
-        
-        // // 1. Thêm/Cập nhật dữ liệu
-        // dataService.upsertSampleData();
-        
-        // // 2. Đọc/Tìm kiếm dữ liệu
-        // // LƯU Ý: Chức năng này chỉ chạy thành công nếu bạn có vector hợp lệ để query
-        // // dataService.querySampleData(); 
-        
-        // System.out.println("--- KẾT THÚC ---");
         //END_TEST_ZONE
         
         };

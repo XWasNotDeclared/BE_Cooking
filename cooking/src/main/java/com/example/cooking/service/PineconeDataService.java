@@ -56,7 +56,7 @@ public SearchRecordsResponse searchEx(String query){
     fields.add("title");
     fields.add("text");
     try {
-    SearchRecordsResponse recordsResponse = pineconeIndex.searchRecordsByText(query, defaultNamespace, fields, 10, null, null);
+    SearchRecordsResponse recordsResponse = pineconeIndex.searchRecordsByText(query, defaultNamespace, fields, 3, null, null);
     return recordsResponse;
     }
     catch (Exception e){
