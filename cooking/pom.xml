@@ -159,10 +159,21 @@
 			<version>1.16.0</version>
 		</dependency>
 <!--  -->
-		<!-- AI -->
+		<!-- AI GROQ -->
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-model-openai</artifactId>
+		</dependency>
+		<!-- Advicsor cho RAG -->
+<dependency>
+   <groupId>org.springframework.ai</groupId>
+   <artifactId>spring-ai-advisors-vector-store</artifactId>
+</dependency>
+		<!-- VECTOR DB pinecone -->
+		<dependency>
+			<groupId>io.pinecone</groupId>
+			<artifactId>pinecone-client</artifactId>
+			<version>5.1.0</version>
 		</dependency>
 		<!--  -->
 

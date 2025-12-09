@@ -23,5 +23,7 @@ public interface RecipeIngredientSearchProjection {
     String getMissingFromInput();
     String getMissingFromRecipe();
     Integer getMatchedCount();
-    Integer getTotalIngredients();
+    Integer getTotalRecipeIngredients();
+
+    String getAllIngredients();
 }

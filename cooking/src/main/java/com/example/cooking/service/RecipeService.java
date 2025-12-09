@@ -23,6 +23,7 @@ import com.example.cooking.dto.request.RecipeIngredientRequestDTO;
 import com.example.cooking.dto.request.StepRequestDTO;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
+import com.example.cooking.event.RecipeCreatedEvent;
 import com.example.cooking.event.RecipeUpdatedEvent;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.Recipe;
@@ -108,7 +109,7 @@ public class RecipeService {
 
         Recipe saved = recipeRepository.save(recipe);
         // phat event sua cong thuc
-        eventPublisher.publishEvent(new RecipeUpdatedEvent(saved.getId()));
+        eventPublisher.publishEvent(new RecipeCreatedEvent(saved.getId(), newRecipeRequest));
         return saved.getId();
     }
 
@@ -232,7 +233,7 @@ public class RecipeService {
         recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
         return new PageDTO<>(recipePage, recipeSummaries);
     }
-
+/////////////////
     public PageDTO<RecipeSummaryDTO> getRecipesByIngredientId(MyUserDetails currentUser,Long ingredientId, Pageable pageable) {
         Page<Recipe> recipePage = recipeRepository.findRecipesByIngredientIdAndScopeAndStatus(ingredientId, Scope.PUBLIC, Status.APPROVED, pageable);
         if (recipePage.isEmpty()) {
@@ -243,6 +244,8 @@ public class RecipeService {
         recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
         return new PageDTO<>(recipePage, recipeSummaries);
     }
+    /////////////////////
+    
 
     //////////
     public PageDTO<RecipeSummaryDTO> getRecipesByCategoryIds(

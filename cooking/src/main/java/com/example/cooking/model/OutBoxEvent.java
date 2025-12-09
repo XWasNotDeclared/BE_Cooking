@@ -28,7 +28,7 @@ public class OutBoxEvent {
     private String eventType;
 
     @Column(columnDefinition = "JSON")
-    private String paload;
+    private String payload;
 
     private boolean processed = false;
 

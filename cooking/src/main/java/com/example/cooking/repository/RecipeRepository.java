@@ -228,6 +228,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
                 rm.views,
                 rm.created_at,
                 rm.updated_at,
+                GROUP_CONCAT(DISTINCT name) AS allIngredients,
                 GROUP_CONCAT(DISTINCT CASE WHEN isMatch = 1 THEN name END) AS matchedIngredients,
                 (
                 SELECT GROUP_CONCAT(i.name)
@@ -242,15 +243,34 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
                 ) AS missingFromInput,
                 GROUP_CONCAT(DISTINCT CASE WHEN isMatch = 0 THEN name END) AS missingFromRecipe,
                 SUM(isMatch) AS matchedCount,
-                COUNT(*) AS totalIngredients
+                COUNT(*) AS totalRecipeIngredients
         FROM recipe_match rm
         GROUP BY rm.recipe_id, rm.title
         HAVING matchedCount > 0
         ORDER BY matchedCount DESC
         """,
+        // countQuery = """
+        // SELECT COUNT(DISTINCT rm.recipe_id)
+        // FROM recipe_match rm
+        // """,
         countQuery = """
-        SELECT COUNT(DISTINCT rm.recipe_id)
-        FROM recipe_match rm
+        WITH input AS (
+                SELECT ingredient_id
+                FROM ingredients
+                WHERE ingredient_id IN (:ingredientIds)
+        ),
+        recipe_match AS (
+                SELECT 
+                        r.recipe_id,
+                        ri.ingredient_id,
+                        CASE WHEN inp.ingredient_id IS NOT NULL THEN 1 ELSE 0 END AS isMatch
+                FROM recipes r
+                JOIN recipe_ingredients ri ON r.recipe_id = ri.recipe_id
+                LEFT JOIN input inp ON ri.ingredient_id = inp.ingredient_id
+        )
+        SELECT COUNT(DISTINCT recipe_id)
+        FROM recipe_match
+        WHERE isMatch = 1
         """,
         nativeQuery = true)
         Page<RecipeIngredientSearchProjection> findRecipesByIngredientIds(
