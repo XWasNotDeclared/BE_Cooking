@@ -33,7 +33,7 @@ public class DataInitializer {
                         ){
         return args -> {
             // 1. Insert default roles if not exists
-            Arrays.asList("USER", "CHEF", "ADMIN").forEach(roleName -> {
+            Arrays.asList("USER", "CHEF","SELLER","ADMIN").forEach(roleName -> {
                 if (roleRepository.findByName(roleName).isEmpty()) {
                     RoleEntity role = RoleEntity.builder()
                                                 .name(roleName)

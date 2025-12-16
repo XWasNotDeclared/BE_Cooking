@@ -120,8 +120,8 @@ public class Recipe {
     private Set<Tag> tags = new LinkedHashSet<>();
 
     //NEW
-    @OneToMany(mappedBy = "recipe",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Dish> dishes;
+    // @OneToMany(mappedBy = "recipe",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    // private Set<Dish> dishes;
     //
     
     @PrePersist

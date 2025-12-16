@@ -1,5 +1,7 @@
 package com.example.cooking.controller.pub;
 
+import java.util.List;
+
 import org.openapitools.db_data.client.model.SearchRecordsResponse;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.cooking.common.ApiResponse;
-import com.example.cooking.common.enums.AIToolName;
+import com.example.cooking.dto.AIToolDTO;
 import com.example.cooking.service.ChatBotService;
+import com.example.cooking.service.ToolService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class TestController {
     private final com.example.cooking.service.PineconeDataService pineconeDataService;
     private final ChatBotService chatBotService;
+    private final ToolService toolService;
     @GetMapping("/pinecone-search")
     public ResponseEntity<ApiResponse<SearchRecordsResponse>> test(@RequestParam String query){
         return ApiResponse.ok( pineconeDataService.searchEx(query));
@@ -35,9 +39,14 @@ public class TestController {
     }
 
     @GetMapping("/chatbot-with-tool-response")
-    public ResponseEntity<?> getChatBotWithToolResponse(@RequestParam String message, @RequestParam AIToolName toolName){
+    public ResponseEntity<?> getChatBotWithToolResponse(@RequestParam String userMsg, @RequestParam(required = false) List<Integer> toolNumbers){
         // String response = chatBotService.getChatBotResponse(message);
-        return ApiResponse.ok(chatBotService.getChatBotResponseWithTool(message, toolName));
+        return ApiResponse.ok(chatBotService.getChatBotResponseWithTool(userMsg, toolNumbers));
+    }
+
+    @GetMapping("/list")
+    public List<AIToolDTO> listTools() {
+        return toolService.getAllTools();
     }
 
     @PostMapping(path = "/chatbot-response-with-image", consumes = {"multipart/form-data"})

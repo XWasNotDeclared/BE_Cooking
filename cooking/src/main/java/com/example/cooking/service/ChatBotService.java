@@ -13,7 +13,7 @@ import com.example.cooking.common.enums.AIToolName;
 public interface ChatBotService {
     String getChatBotResponse(String userMessage);
 
-    String getChatBotResponseWithTool(String userMessage, AIToolName tools);
+    String getChatBotResponseWithTool(String userMessage, List<Integer> toolNumbers);
 
     String getChatBotResponseWithImage(String userMessage, MultipartFile image);
 }

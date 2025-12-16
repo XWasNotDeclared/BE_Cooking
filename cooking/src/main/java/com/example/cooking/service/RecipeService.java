@@ -192,6 +192,7 @@ public class RecipeService {
         // 2. Kiểm tra quyền truy cập thông qua AccessService
         Long currentUserId = currentUser != null ? currentUser.getId() : null;
         accessService.checkRecipeAccess(recipe, currentUserId);
+        
         // Tăng lượt xem
         incrementView(recipe, currentUserId);
         RecipeDetailResponse dto = recipeMapper.toRecipeResponse(recipe);
