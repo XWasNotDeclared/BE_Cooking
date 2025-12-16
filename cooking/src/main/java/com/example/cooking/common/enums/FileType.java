@@ -6,5 +6,6 @@ public enum FileType {
     STEP,       // Ảnh từng bước của món ăn
     RECIPEVIDEO, // Video món ăn
     CATEGORYIMAGE, // Ảnh danh mục
+    DISH,
     TEMP        // Ảnh tạm, chưa được move vào folder chính
 }

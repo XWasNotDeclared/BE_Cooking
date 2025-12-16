@@ -1,6 +1,7 @@
 package com.example.cooking.model;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.example.cooking.common.enums.Difficulty;
@@ -100,6 +101,8 @@ public class Recipe {
     @OrderBy("displayOrder ASC")
     private Set<RecipeIngredient> recipeIngredients = new LinkedHashSet<>();
 
+
+
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
         name = "recipe_category",
@@ -116,7 +119,11 @@ public class Recipe {
     )
     private Set<Tag> tags = new LinkedHashSet<>();
 
-
+    //NEW
+    @OneToMany(mappedBy = "recipe",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Dish> dishes;
+    //
+    
     @PrePersist
     protected void onCreate(){
         this.createdAt = LocalDateTime.now();

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.cooking.common.ApiResponse;
+import com.example.cooking.common.enums.AIToolName;
 import com.example.cooking.service.ChatBotService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,18 @@ public class TestController {
         // String response = chatBotService.getChatBotResponse(message);
         return ApiResponse.ok(chatBotService.getChatBotResponse(message));
     }
+
+    @GetMapping("/chatbot-with-tool-response")
+    public ResponseEntity<?> getChatBotWithToolResponse(@RequestParam String message, @RequestParam AIToolName toolName){
+        // String response = chatBotService.getChatBotResponse(message);
+        return ApiResponse.ok(chatBotService.getChatBotResponseWithTool(message, toolName));
+    }
+
     @PostMapping(path = "/chatbot-response-with-image", consumes = {"multipart/form-data"})
     public ResponseEntity<?> getChatBotResponseWithImage(@RequestParam String message, @RequestParam(required = false) MultipartFile image){
         // String response = chatBotService.getChatBotResponse(message);
         return ApiResponse.ok(chatBotService.getChatBotResponseWithImage(message, image));
     }
+
+    
 }
