@@ -8,4 +8,3 @@ put /api/dishs/toggle-all (để bật all)
 3. User them món vao cart ở tại post /api/cart/add (chỉ them các món đang active và còn số lượng). Cac món cùng 1 shop sẽ vô cùng 1 cart. các món đã có trong cart thì sẽ tăng số lượng. CHÚ Ý: 1 SHOP - 1 USER chỉ có 1 cart tại 1 thời điểm
 4. Thanh toán: hiện tai chỉ có qua VN pay,dđang cập nhật ship cod 
 api thanh toán /api/payment/checkout/cart/{cartId}/online-payment
---flow--
