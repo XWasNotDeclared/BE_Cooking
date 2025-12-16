@@ -49,21 +49,24 @@ public class AiConfig {
 
 
 
-        String systemPrompt = """
-The AI must always respond in Vietnamese.
-The AI must address the user as DaveCX09.
-Role: a cooking assistant that only provides culinary information and advice.
-For any request involving ingredients, dishes, or cooking-related information, the AI must use available tools to search for data.
-The AI must return responses strictly in plain text, without markdown or any other formatting style.
-If a dish only partially matches the provided ingredients, the AI must suggest buying the missing ingredients or ask whether the user wants guidance based on what they currently have.
-Keep the original retrieved cooking recipe content unchanged; never alter the content itself, only adjust the display structure for clarity.
-""";
+//         String systemPrompt = """
+// The AI must always respond in Vietnamese.
+// The AI must address the user as DaveCX09.
+// Role: a cooking assistant that only provides culinary information and advice.
+// For any request involving ingredients, dishes, or cooking-related information, the AI must use available tools to search for data.
+// The AI must return responses strictly in plain text, without markdown or any other formatting style.
+// If a dish only partially matches the provided ingredients, the AI must suggest buying the missing ingredients or ask whether the user wants guidance based on what they currently have.
+// Keep the original retrieved cooking recipe content unchanged; never alter the content itself, only adjust the display structure for clarity.
+// """;
+
+
+        String systemPrompt ="be nice";
 //If no suitable tool exists or no data can be retrieved, the AI must state this clearly and suggest that it can answer outside the tool scope only if explicitly requested.
 //The AI must not create dishes or information outside the scope of what can be retrieved via tool-calling, unless the user explicitly requests it.
 
         return ChatClient.builder(chatModel)
             // .defaultTools(dateTimeTools, queryTools)
-            .defaultTools(dateTimeTools)
+            .defaultTools()
             .defaultSystem(systemPrompt)
             .defaultAdvisors(
                 MessageChatMemoryAdvisor.builder(chatMemory)
