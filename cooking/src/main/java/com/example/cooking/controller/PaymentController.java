@@ -1,11 +1,5 @@
 package com.example.cooking.controller;
-
-import com.example.cooking.common.enums.OrderType;
-import com.example.cooking.dto.paymentDTO.PaymentRequest;
-import com.example.cooking.dto.paymentDTO.PaymentResponse;
-import com.example.cooking.dto.paymentDTO.PaymentReturnResponse;
 import com.example.cooking.dto.paymentDTO.VNPayIpnResponse;
-import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,33 +21,6 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    // /**
-    //  * API tạo payment để nâng cấp lên CHEF
-    //  * Endpoint: POST /api/payment/upgrade-chef
-    //  */
-    // @PostMapping("/upgrade-chef")
-    // public ResponseEntity<PaymentResponse> upgradeToChef(
-    //         HttpServletRequest request,
-    //         @RequestBody PaymentRequest paymentRequest,
-    //         @AuthenticationPrincipal MyUserDetails currentUser // Hoặc dùng UserDetails tùy security config
-    // ) {
-    //     try {
-    //         // Set order type
-    //         paymentRequest.setOrderType(OrderType.UPGRADE_CHEF);
-
-    //         // Tạo payment URL
-    //         PaymentResponse response = paymentService.createPayment(request, paymentRequest, currentUser.getId());
-    //         return ResponseEntity.ok(response);
-
-    //     } catch (UnsupportedEncodingException e) {
-    //         log.error("Error creating payment", e);
-    //         return ResponseEntity.badRequest()
-    //                 .body(PaymentResponse.builder()
-    //                         .code("99")
-    //                         .message("Error creating payment: " + e.getMessage())
-    //                         .build());
-    //     }
-    // }
 
     /**
      * VNPay IPN URL - Nhận thông báo kết quả thanh toán từ VNPay
@@ -271,6 +235,11 @@ public class PaymentController {
                     .body(html);
 
         } catch (Exception e) {
+
+                // Log lỗi ra console hoặc file log
+    e.printStackTrace(); // log stack trace
+    System.out.println("Lỗi xảy ra trong processPaymentResult: " + e.getMessage());
+
             String html = """
                     <html><body><h2>Có lỗi xảy ra</h2></body></html>
                     """;

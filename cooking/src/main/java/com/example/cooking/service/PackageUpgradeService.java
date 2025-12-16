@@ -2,13 +2,15 @@ package com.example.cooking.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.cooking.common.enums.OrderType;
+import com.example.cooking.common.enums.OrderStatus;
 import com.example.cooking.dto.paymentDTO.PaymentRequest;
 import com.example.cooking.dto.paymentDTO.PaymentResponse;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.PackageUpgrade;
+import com.example.cooking.model.UpgradeOrder;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.PackageUpgradeRepository;
+import com.example.cooking.repository.UpgradeOrderRepository;
 import com.example.cooking.repository.UserRepository;
 import com.example.cooking.security.MyUserDetails;
 
@@ -23,6 +25,7 @@ import java.util.List;
 public class PackageUpgradeService {
 
     private final PackageUpgradeRepository packageRepository;
+    private final UpgradeOrderRepository upgradeOrderRepository;
     private final PaymentService paymentService;
     private final UserRepository userRepository;
 
@@ -34,6 +37,8 @@ public class PackageUpgradeService {
     public PackageUpgrade createPackage(PackageUpgrade pkg) {
         return packageRepository.save(pkg);
     }
+
+    //tạo payment nâng cấp gói
     @Transactional
     public PaymentResponse createPaymentForPackage (            
             HttpServletRequest request,
@@ -50,18 +55,29 @@ public class PackageUpgradeService {
         // Logic tạo payment cho gói nâng cấp
         PackageUpgrade pkg = packageRepository.findById(packageId)
                 .orElseThrow(() -> new RuntimeException("Package not found: " + packageId));
-        PaymentRequest paymentRequest = PaymentRequest.builder()
-                .orderType(OrderType.UPGRADE_CHEF)
-                .amount(pkg.getPrice())
-                .orderInfo("Upgrade pack: " + pkg.getName())
-                .bankCode(bankCode)
-                .language("vn")
+
+        //1.Tạo order nâng cấp gói (UpgradeOrder)
+        UpgradeOrder upgradeOrder = UpgradeOrder.builder()
+                .buyer(user)
                 .packageUpgrade(pkg)
                 .packageDurationDays(pkg.getDurationDays())
                 .roleAssigned("CHEF")
+                .totalAmount(pkg.getPrice())
+                .orderInfo("Nang cap")
+                .orderStatus(OrderStatus.PENDING_ACCOUNT_UPGRADE)
                 .build();
 
-        PaymentResponse paymentResponse = paymentService.createPayment(request, paymentRequest, currentUser.getId());
+        upgradeOrder = upgradeOrderRepository.save(upgradeOrder);
+
+
+        PaymentRequest paymentRequest = PaymentRequest.builder()
+                .order(upgradeOrder)
+                .amount(pkg.getPrice())
+                .bankCode(bankCode)
+                .language("vn")
+                .build();
+
+        PaymentResponse paymentResponse = paymentService.createPayment(request, paymentRequest);
 
         return paymentResponse;
     }

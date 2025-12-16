@@ -1,6 +1,6 @@
 package com.example.cooking.service;
 
-import com.example.cooking.common.enums.OrderType;
+import com.example.cooking.common.enums.OrderStatus;
 import com.example.cooking.common.enums.PaymentStatus;
 import com.example.cooking.config.VNPayConfig;
 import com.example.cooking.dto.paymentDTO.PaymentRequest;
@@ -8,21 +8,31 @@ import com.example.cooking.dto.paymentDTO.PaymentResponse;
 import com.example.cooking.dto.paymentDTO.VNPayIpnResponse;
 import com.example.cooking.dto.paymentDTO.VnPayQuerydrRequest;
 import com.example.cooking.dto.paymentDTO.VnPayQuerydrResponse;
-import com.example.cooking.model.PackageUpgrade;
+import com.example.cooking.exception.CustomException;
+import com.example.cooking.model.Order;
 import com.example.cooking.model.PaymentOrder;
+import com.example.cooking.model.Dish;
+import com.example.cooking.model.DishOrder;
+import com.example.cooking.model.DishOrderItem;
 import com.example.cooking.model.RoleEntity;
+import com.example.cooking.model.UpgradeOrder;
 import com.example.cooking.model.User;
-import com.example.cooking.repository.PackageUpgradeRepository;
+import com.example.cooking.repository.DishOrderRepository;
+import com.example.cooking.repository.DishRepository;
+import com.example.cooking.repository.OrderRepository;
 import com.example.cooking.repository.PaymentOrderRepository;
 import com.example.cooking.repository.RoleRepository;
+import com.example.cooking.repository.UpgradeOrderRepository;
 import com.example.cooking.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.Hibernate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -41,20 +51,21 @@ public class PaymentService {
 
     private final VNPayConfig vnPayConfig;
     private final PaymentOrderRepository paymentOrderRepository;
+    private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final DishRepository dishRepository;
+    private final DishService dishService;
+    private final UpgradeOrderRepository upgradeOrderRepository;
+    private final DishOrderRepository dishOrderRepository;
     // new
     private final RestTemplate restTemplate;
-    //////////////////// MAU
+
     /**
      * Tạo URL thanh toán VNPay
      */
-    public PaymentResponse createPayment(HttpServletRequest request, PaymentRequest paymentRequest, Long userId)
+    public PaymentResponse createPayment(HttpServletRequest request, PaymentRequest paymentRequest)
             throws UnsupportedEncodingException {
-
-        // Lấy thông tin user
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Tạo mã giao dịch unique
         String txnRef = generateUniqueTxnRef();
@@ -63,21 +74,10 @@ public class PaymentService {
         long amount = paymentRequest.getAmount() * 100;
         // Tạo PaymentOrder
         PaymentOrder paymentOrder = PaymentOrder.builder()
-                .user(user)
-                .orderType(paymentRequest.getOrderType())
+                .order(paymentRequest.getOrder())
                 .txnRef(txnRef)
-                .amount(amount)
-                .orderInfo(paymentRequest.getOrderInfo())
+                .amount(amount/100)
                 .paymentStatus(PaymentStatus.PENDING)
-                // Thông tin nâng cấp gói / role
-                .packageUpgrade(paymentRequest.getPackageUpgrade())
-                .packageDurationDays(paymentRequest.getPackageDurationDays())
-                .roleAssigned(paymentRequest.getRoleAssigned())
-                // Thông tin nhận hàng
-                .shippingName(paymentRequest.getShippingName())
-                .shippingPhone(paymentRequest.getShippingPhone())
-                .shippingAddress(paymentRequest.getShippingAddress())
-                .shippingNote(paymentRequest.getShippingNote())
                 .build();
 
         paymentOrderRepository.save(paymentOrder);
@@ -95,7 +95,7 @@ public class PaymentService {
         }
 
         vnpParams.put("vnp_TxnRef", txnRef);
-        vnpParams.put("vnp_OrderInfo", paymentRequest.getOrderInfo());
+        vnpParams.put("vnp_OrderInfo", paymentRequest.getOrder().getOrderInfo());
         vnpParams.put("vnp_OrderType", vnPayConfig.getOrderType());
 
         String locale = paymentRequest.getLanguage();
@@ -160,6 +160,7 @@ public class PaymentService {
                 .txnRef(txnRef)
                 .build();
     }
+
     /**
      * Xử lý IPN callback từ VNPay
      */
@@ -214,7 +215,8 @@ public class PaymentService {
             }
 
             // Kiểm tra trạng thái order (chỉ cập nhật nếu đang PENDING hoặc PROCESSING)
-            if (order.getPaymentStatus() != PaymentStatus.PENDING && order.getPaymentStatus() != PaymentStatus.PROCESSING) {
+            if (order.getPaymentStatus() != PaymentStatus.PENDING
+                    && order.getPaymentStatus() != PaymentStatus.PROCESSING) {
                 log.warn("Order already confirmed: {}", txnRef);
                 return VNPayIpnResponse.builder()
                         .RspCode("02")
@@ -235,9 +237,9 @@ public class PaymentService {
                 order.setPaidAt(LocalDateTime.now());
 
                 // Nâng cấp user lên CHEF nếu là order upgrade
-                if ("UPGRADE_CHEF".equals(order.getOrderType())) {
-                    upgradeUserToChef(order.getUser());
-                }
+                // if ("UPGRADE_CHEF".equals(order.getOrderType())) {
+                // upgradeUserToChef(order.getUser());
+                // }
 
                 log.info("Payment success for txnRef: {}", txnRef);
             } else {
@@ -369,6 +371,7 @@ public class PaymentService {
                     vnPayConfig.getApiTransactionUrl(),
                     entity,
                     VnPayQuerydrResponse.class);
+                    System.out.println(response);
 
             // 4. KIỂM TRA SECURE HASH CỦA RESPONSE (BẮT BUỘC)
             // (Bạn cần triển khai logic kiểm tra hash của response tại đây)
@@ -402,139 +405,116 @@ public class PaymentService {
     ///////////////////////////
     public Map<String, Object> handleReturn(Map<String, String> params) {
 
-        // ... (Logic kiểm tra Secure Hash của Return URL PARAMS - Bắt buộc) ...
-        // 1. KIỂM TRA SECURE HASH CỦA RETURN URL (BẮT BUỘC theo tài liệu VNPAY)
-
-        // ----------------------------------------------------
-        // *** LOGIC TIẾP THEO SAU KHI ĐÃ XÁC MINH HASH ***
-        // ----------------------------------------------------
-        String vnp_ResponseCode = params.get("vnp_ResponseCode");
+        // TODO: kiểm tra hash
         String txnRef = params.get("vnp_TxnRef");
-        String transactionDate = params.get("vnp_PayDate"); // Lấy thời gian thanh toán từ Return URL (hoặc
-                                                            // vnp_CreateDate nếu không có PayDate)
-        String amountStr = params.get("vnp_Amount");
-        // Giả định: Hash Return URL đã hợp lệ (hoặc bạn đã có logic kiểm tra ở lớp
-        // trên)
-        // **BƯỚC 1: KIỂM TRA TRẠNG THÁI HIỆN TẠI CỦA ĐƠN HÀNG TRONG DB**
-        // Giả sử bạn có hàm tìm kiếm trạng thái đơn hàng hiện tại
-        PaymentOrder order = paymentOrderRepository.findByTxnRef(txnRef).orElse(null);
-        if (order == null) {
-            log.error("Order not found in RETURN URL handling: {}", txnRef);
-            return Map.of("RspCode", "01", "Message", "Don hang khong ton tai");
+        // String responseCode = params.get("vnp_ResponseCode");
+        // String amountStr = params.get("vnp_Amount");
+        String transactionDate = params.get("vnp_PayDate");
+
+        PaymentOrder paymentOrder = paymentOrderRepository.findByTxnRef(txnRef)
+                .orElse(null);
+
+        if (paymentOrder == null) {
+            return Map.of("RspCode", "01", "Message", "Order not found");
         }
 
-        PaymentStatus currentDbStatus = order.getPaymentStatus();
-        // Nếu đơn hàng đã ở trạng thái thành công (SUCCESS), thoát ngay lập tức
-        if (currentDbStatus == PaymentStatus.SUCCESS) {
-            log.warn("Order {} already processed successfully. No need for QueryDR.", txnRef);
-            return Map.of("RspCode", "00", "Message", "Thanh toan da duoc cap nhat truoc do.");
+        // Idempotent
+        if (paymentOrder.getPaymentStatus() == PaymentStatus.SUCCESS) {
+            return Map.of("RspCode", "00", "Message", "Already processed");
         }
 
-        if ("00".equals(vnp_ResponseCode)) {
-            // Ngăn chặn gọi QueryDR nhiều lần nếu trạng thái đang là PROCESSING
-            if (currentDbStatus == PaymentStatus.PROCESSING) {
-                // Có thể xem xét trả về trạng thái đang xử lý hoặc gọi QueryDR lần cuối (tùy
-                // policy)
-                // Tốt nhất là KHÔNG gọi lại để tránh lỗi Duplicate Request.
-                log.warn("Order {} is still processing. Skipping QueryDR retry.", txnRef);
-                return Map.of("RspCode", "99", "Message", "Don hang dang duoc xu ly, vui long doi.");
-            }
+        VnPayQuerydrResponse querydr = queryTransactionStatus(txnRef, transactionDate);
+        Long querydrAmount = querydr.getVnp_Amount()/100; // Lấy từ QueryDR
+        log.info("SO TIENnnnnnnnnnnnnnnnnnnnnnnn");
+        System.out.println(querydrAmount);
 
-            // Cập nhật tạm thời: Đặt trạng thái đơn hàng thành PROCESSING trong DB (để
-            // khóa)
-            updateOrderStatus(txnRef, PaymentStatus.PROCESSING);
-            // Giao dịch thành công ban đầu -> Gọi QueryDR để xác nhận
-            VnPayQuerydrResponse querydrResponse = this.queryTransactionStatus(txnRef, transactionDate);
-
-            if ("00".equals(querydrResponse.getVnp_ResponseCode())
-                    && "00".equals(querydrResponse.getVnp_TransactionStatus())) {
-
-                // Thành công cuối cùng: API Lookup thành công (00) VÀ Giao dịch thanh toán
-                // thành công (00)
-                // updateOrderStatus(txnRef, "SUCCESS");
-                log.info("Order {} confirmed SUCCESS via QueryDR.", txnRef);
-                boolean ok = processPaymentResult(
-                        txnRef,
-                        "00",
-                        "00",
-                        amountStr,
-                        params);
-
-                if (!ok) {
-                    updateOrderStatus(txnRef, PaymentStatus.PROCESSING);// Quay lại trạng thái PROCESSING nếu lỗi
-                    return Map.of("RspCode", "99", "Message", "Khong the cap nhat don hang");
-                }
-
-                return Map.of("RspCode", "00", "Message", "Thanh toan thanh cong");
-            } else {
-                // Trạng thái không rõ ràng hoặc lỗi sau QueryDR
-                updateOrderStatus(txnRef, PaymentStatus.FAILED);
-                log.warn("Order {} failed confirmation via QueryDR. Status: {}", txnRef,
-                        querydrResponse.getVnp_TransactionStatus());
-                return Map.of("RspCode", "99", "Message", "Giao dich that bai: " + querydrResponse.getVnp_Message());
-            }
-        } else {
-            // Giao dịch thất bại ban đầu
-            log.warn("Order {} failed immediately. VNPAY Code: {}", txnRef, vnp_ResponseCode);
-            // updateOrderStatus(txnRef, "FAILED");
-            updateOrderStatus(txnRef, PaymentStatus.FAILED);
-            return Map.of("RspCode", vnp_ResponseCode, "Message", "Giao dich that bai tai VNPAY");
+        if (!"00".equals(querydr.getVnp_ResponseCode())
+                || !"00".equals(querydr.getVnp_TransactionStatus())) {
+            processPaymentResult(
+                    txnRef,
+                    querydr.getVnp_ResponseCode(),
+                    querydr.getVnp_TransactionStatus(),
+                    querydrAmount,
+                    params);
+            return Map.of("RspCode", "99", "Message", "QueryDR failed");
         }
+
+        // DUY NHẤT 1 CHỖ XỬ LÝ CUỐI
+        boolean ok = processPaymentResult(
+                txnRef,
+                "00",
+                "00",
+                querydrAmount,
+                params);
+
+        if (!ok) {
+            return Map.of("RspCode", "99", "Message", "Process failed");
+        }
+
+        return Map.of("RspCode", "00", "Message", "Payment success");
     }
 
     ////////////
-    @Transactional
-    public boolean processPaymentResult(String txnRef,
+    @Transactional(rollbackFor = Exception.class)
+    public boolean processPaymentResult(
+            String txnRef,
             String responseCode,
             String transactionStatus,
-            String amountStr,
+            Long vnpAmount,
             Map<String, String> params) {
 
-        long vnpAmount = Long.parseLong(amountStr);
+        PaymentOrder paymentOrder = paymentOrderRepository.findByTxnRef(txnRef)
+                .orElseThrow();
 
-        PaymentOrder order = paymentOrderRepository.findByTxnRef(txnRef).orElse(null);
-        if (order == null) {
-            log.error("Order not found: {}", txnRef);
-            return false;
-        }
-
-        // Kiểm tra số tiền
-        if (!order.getAmount().equals(vnpAmount)) {
-            log.error("Invalid amount for {}. Expected: {}, Received: {}", txnRef, order.getAmount(), vnpAmount);
-            return false;
-        }
-
-        // Tránh update 2 lần (IMPORTANT cho future IPN)
-        if (order.getPaymentStatus() != PaymentStatus.PENDING && order.getPaymentStatus() != PaymentStatus.PROCESSING) {
-            log.warn("Order {} already processed.", txnRef);
+        // Idempotent
+        if (paymentOrder.getPaymentStatus() == PaymentStatus.SUCCESS) {
             return true;
         }
 
-        // Ghi thông tin từ VNPay
-        order.setResponseCode(responseCode);
-        order.setTransactionStatus(transactionStatus);
-        order.setVnpayTransactionNo(params.get("vnp_TransactionNo"));
-        order.setBankCode(params.get("vnp_BankCode"));
-        order.setCardType(params.get("vnp_CardType"));
-
-        // Update trạng thái
-        if ("00".equals(responseCode) && "00".equals(transactionStatus)) {
-            order.setPaymentStatus(PaymentStatus.SUCCESS);
-            order.setPaidAt(LocalDateTime.now());
-
-            //Nếu là yêu cầu nâng cấp CHEF thì nâng cấp user lên CHEF
-            if (order.getOrderType()==OrderType.UPGRADE_CHEF) {
-                upgradeUserToChef(order.getUser());
-            }
-            log.info("Order {} marked as SUCCESS", txnRef);
-
-
-        } else {
-            order.setPaymentStatus(PaymentStatus.FAILED);
-            log.info("Order {} marked as FAILED", txnRef);
+        if (!paymentOrder.getAmount().equals(vnpAmount)) {
+            System.out.println(paymentOrder.getAmount());
+            System.out.println(vnpAmount);
+            return false;
         }
 
-        paymentOrderRepository.save(order);
+        Order order = paymentOrder.getOrder();
+        if (order == null) {
+            return false;
+        }
+        order = orderRepository.findById(order.getId()).orElseThrow(() ->new CustomException("Khong thay order"));
+        // Ghi log VNPay
+        paymentOrder.setResponseCode(responseCode);
+        paymentOrder.setTransactionStatus(transactionStatus);
+        paymentOrder.setVnpayTransactionNo(params.get("vnp_TransactionNo"));
+        paymentOrder.setBankCode(params.get("vnp_BankCode"));
+        paymentOrder.setCardType(params.get("vnp_CardType"));
+
+        if (!"00".equals(responseCode) || !"00".equals(transactionStatus)) {
+            updatePaymentStatus(txnRef, PaymentStatus.FAILED);
+            order.setOrderStatus(OrderStatus.CANCELLED_BY_PAYMENT_FAIL);
+            orderRepository.save(order);
+            return true;
+        }
+System.out.println("Hit3");
+        // ==== PHẦN QUAN TRỌNG ====
+        if (order.getOrderType().equals("PURCHASE_PRODUCT")) {
+            DishOrder dishOrder = dishOrderRepository.findById(order.getId())
+                                     .orElseThrow(()-> new CustomException("Khong thay dish order"));
+            decreaseDishServingsWithVersion(dishOrder);
+            System.out.println("Hit2");
+            order.setOrderStatus(OrderStatus.PAID);
+        }
+        if (order.getOrderType().equals("UPGRADE_CHEF")) {
+            UpgradeOrder upgradeOrder = upgradeOrderRepository.findById(order.getId())
+                                        .orElseThrow(()-> new CustomException("Khong thay upgrade order"));
+            upgradeUserToChef(upgradeOrder.getBuyer());
+            order.setOrderStatus(OrderStatus.COMPLETED);
+        }
+        paymentOrder.setPaidAt(LocalDateTime.now());
+        paymentOrder.setPaymentStatus(PaymentStatus.SUCCESS);
+        orderRepository.save(order);
+        paymentOrderRepository.save(paymentOrder);
+
         return true;
     }
 
@@ -603,138 +583,44 @@ public class PaymentService {
      * Cập nhật trạng thái đơn hàng theo txnRef.
      */
     @Transactional
-    public void updateOrderStatus(String txnRef, PaymentStatus newStatus) {
-        PaymentOrder order = paymentOrderRepository.findByTxnRef(txnRef)
+    public void updatePaymentStatus(String txnRef, PaymentStatus newStatus) {
+        PaymentOrder paymentOrder = paymentOrderRepository.findByTxnRef(txnRef)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + txnRef));
-
-        PaymentStatus oldStatus = order.getPaymentStatus();
-
+        PaymentStatus oldStatus = paymentOrder.getPaymentStatus();
         // Idempotent: nếu trạng thái không đổi thì bỏ qua
         if (oldStatus == newStatus) {
             return;
         }
-
         // Không cho phép cập nhật SUCCESS -> trạng thái khác
         if (oldStatus == PaymentStatus.SUCCESS && newStatus != PaymentStatus.SUCCESS) {
             return;
         }
-
         // Chuyển trạng thái
-        order.setPaymentStatus(newStatus);
-
+        paymentOrder.setPaymentStatus(newStatus);
         // Ghi thời gian thanh toán khi thành công lần đầu
-        if (newStatus == PaymentStatus.SUCCESS && order.getPaidAt() == null) {
-            order.setPaidAt(LocalDateTime.now());
+        if (newStatus == PaymentStatus.SUCCESS && paymentOrder.getPaidAt() == null) {
+            paymentOrder.setPaidAt(LocalDateTime.now());
         }
-
-        paymentOrderRepository.save(order);
-    }
-
-    //////////////////// MAU
-    /**
-     * Tạo URL thanh toán VNPay
-     */
-    public PaymentResponse createPaymentTest(HttpServletRequest request, PaymentRequest paymentRequest, Long userId)
-            throws UnsupportedEncodingException {
-
-        // Lấy thông tin user
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Tạo mã giao dịch unique
-        String txnRef = generateUniqueTxnRef();
-
-        // Tính số tiền (nhân 100 để bỏ phần thập phân)
-        long amount = paymentRequest.getAmount() * 100;
-
-        // Tạo PaymentOrder
-        PaymentOrder paymentOrder = PaymentOrder.builder()
-                .user(user)
-                .orderType(paymentRequest.getOrderType())
-                .txnRef(txnRef)
-                .amount(amount)
-                .orderInfo(paymentRequest.getOrderInfo())
-                .paymentStatus(PaymentStatus.PENDING)
-                .build();
-
         paymentOrderRepository.save(paymentOrder);
-
-        // Build VNPay payment parameters
-        Map<String, String> vnpParams = new HashMap<>();
-        vnpParams.put("vnp_Version", vnPayConfig.getVersion());
-        vnpParams.put("vnp_Command", vnPayConfig.getCommand());
-        vnpParams.put("vnp_TmnCode", vnPayConfig.getTmnCode());
-        vnpParams.put("vnp_Amount", String.valueOf(amount));
-        vnpParams.put("vnp_CurrCode", "VND");
-
-        if (paymentRequest.getBankCode() != null && !paymentRequest.getBankCode().isEmpty()) {
-            vnpParams.put("vnp_BankCode", paymentRequest.getBankCode());
-        }
-
-        vnpParams.put("vnp_TxnRef", txnRef);
-        vnpParams.put("vnp_OrderInfo", paymentRequest.getOrderInfo());
-        vnpParams.put("vnp_OrderType", vnPayConfig.getOrderType());
-
-        String locale = paymentRequest.getLanguage();
-        if (locale == null || locale.isEmpty()) {
-            locale = "vn";
-        }
-        vnpParams.put("vnp_Locale", locale);
-
-        vnpParams.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
-        vnpParams.put("vnp_IpAddr", getIpAddress(request));
-
-        // Thời gian tạo và hết hạn
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String vnpCreateDate = formatter.format(cld.getTime());
-        vnpParams.put("vnp_CreateDate", vnpCreateDate);
-
-        cld.add(Calendar.MINUTE, 15);
-        String vnpExpireDate = formatter.format(cld.getTime());
-        vnpParams.put("vnp_ExpireDate", vnpExpireDate);
-
-        // Build query string và hash data
-        List<String> fieldNames = new ArrayList<>(vnpParams.keySet());
-        Collections.sort(fieldNames);
-
-        StringBuilder hashData = new StringBuilder();
-        StringBuilder query = new StringBuilder();
-
-        Iterator<String> itr = fieldNames.iterator();
-        while (itr.hasNext()) {
-            String fieldName = itr.next();
-            String fieldValue = vnpParams.get(fieldName);
-            if (fieldValue != null && !fieldValue.isEmpty()) {
-                // Build hash data
-                hashData.append(fieldName);
-                hashData.append('=');
-                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-
-                // Build query
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
-                query.append('=');
-                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-
-                if (itr.hasNext()) {
-                    query.append('&');
-                    hashData.append('&');
-                }
-            }
-        }
-
-        String queryUrl = query.toString();
-        String vnpSecureHash = vnPayConfig.hmacSHA512(vnPayConfig.getHashSecret(), hashData.toString());
-        queryUrl += "&vnp_SecureHash=" + vnpSecureHash;
-        String paymentUrl = vnPayConfig.getPayUrl() + "?" + queryUrl;
-
-        log.info("Created payment URL for txnRef: {}", txnRef);
-
-        return PaymentResponse.builder()
-                .code("00")
-                .message("success")
-                .paymentUrl(paymentUrl)
-                .txnRef(txnRef)
-                .build();
     }
+
+    private void decreaseDishServingsWithVersion(DishOrder order) {
+
+        for (DishOrderItem item : order.getItems()) {
+
+            Dish dish = dishRepository.findById(item.getDish().getId())
+                    .orElseThrow(() -> new CustomException("Dish not found"));
+
+            if (dish.getRemainingServings() < item.getQuantity()) {
+                throw new CustomException("Not enough servings for dish " + dish.getId());
+            }
+
+            dish.setRemainingServings(
+                    dish.getRemainingServings() - item.getQuantity());
+
+            dishService.syncStatusWithRemaining(dish);
+            // KHÔNG cần save(), JPA dirty checking + @Version
+        }
+    }
+
 }

@@ -12,6 +12,7 @@ public class UploadProperties {
     private String avatar;
     private String recipe;
     private String step;
+    private String dish;
     private String recipeVideo;
     private String categoryImage;
     private String temp; 

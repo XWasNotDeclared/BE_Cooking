@@ -30,8 +30,8 @@ spring:
       base-url: https://api.groq.com/openai
       chat:
         options:
-          # model: openai/gpt-oss-120b
-          model: meta-llama/llama-4-maverick-17b-128e-instruct
+          model: openai/gpt-oss-120b
+          # model: meta-llama/llama-4-maverick-17b-128e-instruct
     # google:
     #   genai:
     #     api-key: ${GOOGLE_GENAI_API_KEY}
@@ -79,6 +79,7 @@ app:
       avatar: static_resource/public/upload/avatars
       recipe: static_resource/public/upload/recipes
       step: static_resource/public/upload/steps
+      dish: static_resource/public/upload/dishs
       recipe-video: static_resource/public/upload/recipe_videos
       category-image: static_resource/public/upload/category_images
       temp: static_resource/public/upload/temp
