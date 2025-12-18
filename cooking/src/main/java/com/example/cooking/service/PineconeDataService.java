@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.cooking.model.Recipe;
 
+import org.openapitools.db_data.client.model.SearchRecordsRequestRerank;
 import org.openapitools.db_data.client.model.SearchRecordsResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,7 +32,7 @@ public class PineconeDataService {
     }
         // --- Nhập recipe  ---
     public void upsertMapData(List<Map<String, String>> upsertRecords) {
-        try {
+        try {   
             // Thực hiện Upsert. Pinecone sẽ tự động nhúng (embed) văn bản (chunk_text)
             // vì index được cấu hình là "integrated-dense-java"
             log.info("Start connect Pinecone server");
@@ -55,12 +56,46 @@ public SearchRecordsResponse searchEx(String query){
     fields.add("_id");
     fields.add("title");
     fields.add("text");
+    fields.add("imageUrl");
     try {
     SearchRecordsResponse recordsResponse = pineconeIndex.searchRecordsByText(query, defaultNamespace, fields, 3, null, null);
     return recordsResponse;
     }
     catch (Exception e){
         log.error("Error while search in Pinecone: {}", e.getMessage());
+        return null;
+    }
+}
+
+
+public SearchRecordsResponse searchExWithRerank(String query) {
+    List<String> fields = List.of("_id", "title", "text","imageUrl");
+    
+    // 1. Cấu hình Rerank
+    // Model bge-reranker-v2-m3 hỗ trợ đa ngôn ngữ, rất tốt cho tiếng Việt.
+    SearchRecordsRequestRerank rerankConfig = new SearchRecordsRequestRerank()
+            .query(query)
+            .model("bge-reranker-v2-m3") 
+            .topN(3) // Số lượng kết quả cuối cùng muốn lấy sau khi rerank
+            .rankFields(List.of("text")); // Field chứa nội dung để model so sánh ngữ nghĩa
+
+    try {
+        // 2. Gọi search với tham số rerank
+        // Lưu ý: Ta lấy top_k ban đầu là 10 (Retrieve) để Reranker có đủ dữ liệu lọc lại còn 3 (topN)
+        SearchRecordsResponse recordsResponse = pineconeIndex.searchRecordsByText(
+                query, 
+                defaultNamespace, 
+                fields, 
+                10,           // top_k: số lượng lấy ra ở bước Vector Search
+                null,         // filter (nếu có)
+                rerankConfig  // tham số Rerank tích hợp
+        );
+        
+        log.info("Search with Rerank successful for query: {}", query);
+        return recordsResponse;
+    }
+    catch (Exception e) {
+        log.error("Error while search in Pinecone with Rerank: {}", e.getMessage());
         return null;
     }
 }

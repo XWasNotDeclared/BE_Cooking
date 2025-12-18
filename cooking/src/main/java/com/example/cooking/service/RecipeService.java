@@ -109,7 +109,7 @@ public class RecipeService {
 
         Recipe saved = recipeRepository.save(recipe);
         // phat event sua cong thuc
-        eventPublisher.publishEvent(new RecipeCreatedEvent(saved.getId(), newRecipeRequest));
+        eventPublisher.publishEvent(new RecipeCreatedEvent(saved.getId(), newRecipeRequest,saved.getImageUrl()));
         return saved.getId();
     }
 

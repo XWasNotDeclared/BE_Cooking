@@ -27,7 +27,7 @@ public class PineconeSyncScheduler {
     private final PineconeDataService pineconeDataService;
     private final ObjectMapper objectMapper;
 
-    @Scheduled(fixedDelay = 180_000) // 180s
+    @Scheduled(fixedDelay = 30_000) // 180s
     public void syncOutboxToPinecone() {
         log.info("___START SYNC TO PINECONE_VDB___");
         List<OutBoxEvent> events = outBoxEventRepository.findTop100ByProcessedFalseOrderByCreatedAtAsc();
@@ -77,6 +77,7 @@ public class PineconeSyncScheduler {
         results.put("_id", Long.toString(event.getAggregateId()));
         results.put("title", payloadRecipeJson.getTitle());
         results.put("text", payload);
+        results.put("imageUrl", payloadRecipeJson.getImageUrl());
         return results;
     }
 }

@@ -7,5 +7,6 @@ public enum FileType {
     RECIPEVIDEO, // Video món ăn
     CATEGORYIMAGE, // Ảnh danh mục
     DISH,
+    CHAT,
     TEMP        // Ảnh tạm, chưa được move vào folder chính
 }

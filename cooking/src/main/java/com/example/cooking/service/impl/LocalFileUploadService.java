@@ -105,6 +105,7 @@ public class LocalFileUploadService implements UploadFileService {
                 case "recipes": originalType = FileType.RECIPE; break;
                 case "steps":  originalType = FileType.STEP; break;
                 case "dishs":  originalType = FileType.DISH; break;
+                case "chats":  originalType = FileType.CHAT; break;
                 default: throw new CustomException("Unknown type folder in temp: " + typeFolderName);
             }
 
@@ -150,6 +151,7 @@ public class LocalFileUploadService implements UploadFileService {
             case RECIPEVIDEO:   return uploadProperties.getRecipeVideo();
             case CATEGORYIMAGE:   return uploadProperties.getCategoryImage();
             case DISH:   return uploadProperties.getDish();
+            case CHAT:   return uploadProperties.getChat();
             case TEMP:
             default:     return uploadProperties.getTemp();
         }
@@ -162,6 +164,7 @@ public class LocalFileUploadService implements UploadFileService {
             case RECIPE:   return uploadProperties.getTemp() + "/recipes";
             case STEP:   return uploadProperties.getTemp() + "/steps";
             case DISH:   return uploadProperties.getTemp() + "/dishs";
+            case CHAT:   return uploadProperties.getTemp() + "/chats";
             
             case TEMP:
             default:     return uploadProperties.getTemp() + "/others";
