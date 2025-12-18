@@ -2,6 +2,21 @@
 #   port: 8081
 #   servlet:
 #     context-path: /abc
+# server:
+#   tomcat:
+#     # Tham số này giải quyết trực tiếp lỗi FileCountLimitExceededException
+#     max-part-count: 200
+#     # Tham số này giúp tránh lỗi header của các part quá dài
+#     max-part-header-size: 8192
+#     max-parameter-count: 2000
+
+server:
+  tomcat:
+    # Tham số này giải quyết trực tiếp lỗi FileCountLimitExceededException
+    max-part-count: 600
+    # Tham số này giúp tránh lỗi header của các part quá dài
+    max-part-header-size: 24576
+    max-parameter-count: 6000
 
 spring:
   application:
@@ -9,7 +24,9 @@ spring:
   servlet:
     multipart:
       max-file-size: 50MB
-      max-request-size: 50MB
+      max-request-size: 500MB
+      # Thêm dòng này để Spring xử lý số lượng file/part lớn
+      file-size-threshold: 2KB
   mail:
     host: smtp.gmail.com
     port: 587
@@ -22,6 +39,13 @@ spring:
           starttls:
             enable: true 
   ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            # initialize-schema: always
+            initialize-schema: never
+            # schema: classpath:org/springframework/ai/chat/memory/repository/jdbc/schema.sql
     model:
      chat: openai #groq và chatGPT
     #  chat: google-genai # gemini (Đang lỗi)
@@ -31,6 +55,7 @@ spring:
       chat:
         options:
           model: openai/gpt-oss-120b
+
           # model: meta-llama/llama-4-maverick-17b-128e-instruct
     # google:
     #   genai:
@@ -56,7 +81,7 @@ spring:
 ai:
   modules:
     chat:
-      enabled: false
+      enabled: true
 
 app:
   jwt:
@@ -80,6 +105,7 @@ app:
       recipe: static_resource/public/upload/recipes
       step: static_resource/public/upload/steps
       dish: static_resource/public/upload/dishs
+      chat: static_resource/public/upload/chats
       recipe-video: static_resource/public/upload/recipe_videos
       category-image: static_resource/public/upload/category_images
       temp: static_resource/public/upload/temp
@@ -89,9 +115,9 @@ app:
 
 pinecone:
   api-key: ${PINECONE_API_KEY}
-  host: test001-jis24m5.svc.aped-4627-b74a.pinecone.io # Ví dụ: my-index-1234.svc.pinecone.io <-- THAY THẾ
+  host: recipe001-jis24m5.svc.aped-4627-b74a.pinecone.io # Ví dụ: my-index-1234.svc.pinecone.io <-- THAY THẾ
   PINECONE_ENVIRONMENT: us-east-1
-  index-name: test001 # Tên Index bạn muốn dùng <-- THAY THẾ
+  index-name: recipe001 # Tên Index bạn muốn dùng <-- THAY THẾ
   namespace: example-namespace # Namespace mặc định
 
 # VNPay Configuration (Sandbox)

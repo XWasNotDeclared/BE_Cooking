@@ -10,4 +10,5 @@ public class PayloadRecipeJson {
     private final String description;
     private final String ingredients;
     private final String steps;
+    private final String imageUrl;
 }

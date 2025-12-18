@@ -13,11 +13,11 @@ import java.util.stream.Collectors;
 
 public enum AIToolName {
     QUERY_VECTOR_DB_TOOL(1, "Query Vector DB Tool"),
-    IMAGE_TO_INGREDIENT_TOOL(2, "Image to Ingredient Tool"),
-    DATE_TIME_TOOL(3, "Date Time Tool"),
-    OTHER_TOOL_1(4, "Other Tool 1"),
-    OTHER_TOOL_2(5, "Other Tool 2"),
-    NONE(6, "None");
+    IMAGE_TO_INGREDIENT_TOOL(2, "Image to Ingredient Tool");
+    // DATE_TIME_TOOL(3, "Date Time Tool"),
+    // OTHER_TOOL_1(4, "Other Tool 1"),
+    // OTHER_TOOL_2(5, "Other Tool 2"),
+    // NONE(6, "None");
 
     private final int id;
     private final String displayName;

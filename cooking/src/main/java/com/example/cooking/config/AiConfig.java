@@ -3,6 +3,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
+// import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +23,8 @@ public class AiConfig {
      * Định nghĩa Bean ChatClient. Spring sẽ tiêm Bean ChatModel
      * (OpenAiChatModel) đã được Spring AI Starter tạo ra.
      */
+    // Spring AI sẽ tự động tạo Bean này khi có starter-jdbc
+    // private final JdbcChatMemoryRepository jdbcChatMemoryRepository;
     private final DateTimeTool dateTimeTools;
     private final QueryTool queryTools;
 
@@ -30,12 +34,21 @@ public class AiConfig {
     /**
      * Định nghĩa Bean ChatMemory với cửa sổ 5 tin nhắn.
      */
-    @Bean
-    public ChatMemory chatMemory() {
-        // Giữ 5 tin nhắn gần nhất (MessageWindowChatMemory)
+    // @Bean
+    // public ChatMemory chatMemory() {
+    //     // Giữ 5 tin nhắn gần nhất (MessageWindowChatMemory)
+    //     return MessageWindowChatMemory.builder()
+    //         .maxMessages(5) 
+    //         .build();
+    // }
+
+@Bean
+    public ChatMemory chatMemory(JdbcChatMemoryRepository repository) {
+        // Lưu tối đa 10 tin nhắn gần nhất vào DB cho mỗi cuộc hội thoại
         return MessageWindowChatMemory.builder()
-            .maxMessages(5) 
-            .build();
+                .chatMemoryRepository(repository)
+                .maxMessages(10)
+                .build();
     }
 
      
@@ -68,11 +81,16 @@ public class AiConfig {
             // .defaultTools(dateTimeTools, queryTools)
             .defaultTools()
             .defaultSystem(systemPrompt)
-            .defaultAdvisors(
-                MessageChatMemoryAdvisor.builder(chatMemory)
-                    .conversationId(CONVERSATION_ID)
-                    .build()
-            )
+            // .defaultAdvisors(
+            //     MessageChatMemoryAdvisor.builder(chatMemory)
+            //         .conversationId(CONVERSATION_ID)
+            //         .build()
+            // )
+            // .defaultAdvisors(
+            //     MessageChatMemoryAdvisor.builder(chatMemory)
+            //         // .conversationId(CONVERSATION_ID)
+            //         .build()
+            // )
             .build();
     }
 }

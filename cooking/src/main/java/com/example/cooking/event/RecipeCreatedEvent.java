@@ -10,4 +10,5 @@ import lombok.Getter;
 public class RecipeCreatedEvent {
     private final Long recipeId;
     private final NewRecipeRequest newRecipeRequest;
+    private final String imageUrl;
 }

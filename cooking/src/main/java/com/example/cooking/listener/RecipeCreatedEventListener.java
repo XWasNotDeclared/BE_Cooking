@@ -33,7 +33,8 @@ public class RecipeCreatedEventListener {
                new PayloadRecipeJson(newRecipeRequest.getTitle(),
                                             newRecipeRequest.getDescription(),
                                             newRecipeRequest.getRecipeIngredients().stream().map(RecipeIngredientRequestDTO::getRawName).collect(Collectors.joining(", ")),
-                                            newRecipeRequest.getSteps().stream().map(step -> { return step.getStepNumber() + ": "+step.getDescription();}).collect(Collectors.joining(",")))
+                                            newRecipeRequest.getSteps().stream().map(step -> { return step.getStepNumber() + ": "+step.getDescription();}).collect(Collectors.joining(",")),
+                                            event.getImageUrl())
             );
 
             OutBoxEvent outbox = new OutBoxEvent();

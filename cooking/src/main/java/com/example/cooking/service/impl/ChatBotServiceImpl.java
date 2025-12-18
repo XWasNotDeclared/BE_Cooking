@@ -1,25 +1,27 @@
 package com.example.cooking.service.impl;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.image.Image;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.cooking.common.enums.AIToolName;
+import com.example.cooking.common.enums.FileType;
+import com.example.cooking.dto.aidto.ToolMetadataContext;
 import com.example.cooking.service.ChatBotService;
 import com.example.cooking.service.UploadFileService;
 import com.example.cooking.tools_chatbot.DateTimeTool;
 import com.example.cooking.tools_chatbot.ImageTool;
 import com.example.cooking.tools_chatbot.QueryTool;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 // @RequiredArgsConstructor
@@ -27,9 +29,11 @@ import lombok.RequiredArgsConstructor;
 public class ChatBotServiceImpl implements ChatBotService {
     private final ChatClient chatClient;
     private final UploadFileService uploadFileService;
+    private final ToolMetadataContext metadataContext;
     private final QueryTool queryTool;
     private final ImageTool imageTool;
     private final DateTimeTool dateTimeTool;
+    public static final String CONVERSATION_ID = "CookingAssistant-DaveCX09-Memory";
 
     private Map toolMap;
 
@@ -37,13 +41,13 @@ public class ChatBotServiceImpl implements ChatBotService {
                               UploadFileService uploadFileService,
                               QueryTool queryTool,
                               ImageTool imageTool,
-                              DateTimeTool dateTimeTool) {
+                              DateTimeTool dateTimeTool,ToolMetadataContext metadataContext) {
         this.chatClient = chatClient;
         this.uploadFileService = uploadFileService;
         this.queryTool = queryTool;
         this.imageTool = imageTool;
         this.dateTimeTool = dateTimeTool;
-
+        this.metadataContext = metadataContext;
         this.toolMap = Map.of(
             1, queryTool,
             2, imageTool,
@@ -61,27 +65,45 @@ public class ChatBotServiceImpl implements ChatBotService {
     }
 
     
-    public String getChatBotResponseWithToolOLD(String userMessage, AIToolName tools) {
-        // TODO Auto-generated method stub
-        String response = "Có lỗi xảy ra khi gọi công cụ AI.";
-        if (tools == AIToolName.QUERY_VECTOR_DB_TOOL) {
-            response = chatClient.prompt().user(userMessage).tools(queryTool).call().content();
-        }   
-        else if (tools == AIToolName.IMAGE_TO_INGREDIENT_TOOL) {
-            response = chatClient.prompt().user(userMessage).tools(imageTool).call().content();
-        }
-        else if (tools == AIToolName.DATE_TIME_TOOL) {
-        }
+    // public String getChatBotResponseWithToolOLD(String userMessage, AIToolName tools) {
+    //     // TODO Auto-generated method stub
+    //     String response = "Có lỗi xảy ra khi gọi công cụ AI.";
+    //     if (tools == AIToolName.QUERY_VECTOR_DB_TOOL) {
+    //         response = chatClient.prompt().user(userMessage).tools(queryTool).call().content();
+    //     }   
+    //     else if (tools == AIToolName.IMAGE_TO_INGREDIENT_TOOL) {
+    //         response = chatClient.prompt().user(userMessage).tools(imageTool).call().content();
+    //     }
+    //     else if (tools == AIToolName.DATE_TIME_TOOL) {
+    //     }
 
-        else if (tools == AIToolName.NONE) {
-            response = chatClient.prompt().user(userMessage).call().content();
-        }
-        // String response = chatClient.prompt().user(userMessage).call().content();
+    //     else if (tools == AIToolName.NONE) {
+    //         response = chatClient.prompt().user(userMessage).call().content();
+    //     }
+    //     // String response = chatClient.prompt().user(userMessage).call().content();
 
-        return response;
-    }
+    //     return response;
+    // }
 @Override
-public String getChatBotResponseWithTool(String userMessage, List<Integer> toolNumbers) {
+public String getChatBotResponseWithTool(String userMessage, List<Integer> toolNumbers, MultipartFile image) {
+        
+        String ingredientInImage=" ||System promt: (Log: result from image to ingredient tool) Ingredient from Image is: \""; 
+        if (image != null && !image.isEmpty())  {
+            String imgUrl = uploadFileService.saveFile(image, FileType.CHAT);
+            String relativePath = imgUrl.startsWith("/")
+                    ? imgUrl.substring(1)
+                    : imgUrl;
+            Path path = Paths.get(relativePath).toAbsolutePath();
+            System.out.println(path.toString());
+            ingredientInImage += imageTool.ImageToIngredientTool(path.toString());
+            ingredientInImage += " \".List it extractly as like you just extract it from image, and looking for the recipe that have them";
+            metadataContext.getToolsUsing().add(2);
+        } else{
+                ingredientInImage="";
+                // System.out.println("Hit2");
+        }
+    userMessage = userMessage + ingredientInImage;        
+    System.out.println("promt--+++++++--"+ userMessage);
     // === BƯỚC 1: Xử lý NULL và danh sách Rỗng ===
     if (toolNumbers == null || toolNumbers.isEmpty()) {
         // Không dùng tool nếu list là null hoặc rỗng
@@ -104,9 +126,11 @@ public String getChatBotResponseWithTool(String userMessage, List<Integer> toolN
     Object[] toolsArray = selectedTools.toArray(new Object[0]); 
 
     // 4. Gọi chatClient sử dụng vararg
+
     return chatClient.prompt()
         .user(userMessage)
-        .tools(toolsArray) 
+        .tools(toolsArray)
+        .advisors(a -> a.param(CONVERSATION_ID, 1))
         .call()
         .content();
 }
