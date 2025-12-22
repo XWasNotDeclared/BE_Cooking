@@ -40,6 +40,7 @@ public class SellerOrderService {
     public PageDTO<DishOrderDTO> getOrdersByStatus(Long sellerId, Pageable pageable, OrderStatus orderStatus) {
         if (orderStatus != OrderStatus.PAID
             && orderStatus != OrderStatus.SHIPPED
+            && orderStatus != OrderStatus.CONFIRMED_BY_SELLER
             && orderStatus != OrderStatus.DELIVERED
             && orderStatus != OrderStatus.COMPLETED) {
             throw new CustomException("Bạn không thể xem các order có trạng thái này");
