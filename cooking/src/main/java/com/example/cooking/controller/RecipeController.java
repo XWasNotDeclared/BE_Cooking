@@ -98,7 +98,7 @@ public class RecipeController {
 
 
     @GetMapping("/liked")
-    @PreAuthorize("hasRole('CHEF')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getMyLikedRecipes(
             @AuthenticationPrincipal MyUserDetails currentUser,
             @RequestParam(defaultValue = "0") int page,
@@ -110,7 +110,7 @@ public class RecipeController {
     }
 
     @GetMapping("/liked/user/{userId}")
-    @PreAuthorize("hasRole('CHEF')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getLikedRecipesByUserId(
             @AuthenticationPrincipal MyUserDetails currentUser,
             @PathVariable Long userId,
