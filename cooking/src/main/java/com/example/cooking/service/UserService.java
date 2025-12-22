@@ -37,6 +37,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final UploadFileService uploadFileService;
     private final RoleRepository roleRepository;
+    private final SellerWalletService sellerWalletService;
 
     @Transactional
     public Long addUser(RegisterRequest registerRequest) {
@@ -112,6 +113,8 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
+        //tạo ví
+        sellerWalletService.createWallet(user);
         return savedUser.getId();
     }
 
