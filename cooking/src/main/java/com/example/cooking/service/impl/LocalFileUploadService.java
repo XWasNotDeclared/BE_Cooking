@@ -73,7 +73,7 @@ public class LocalFileUploadService implements UploadFileService {
             String fileName = UUID.randomUUID() + "_" + safeFileName;
             Path filePath = uploadPath.resolve(fileName);
 
-            file.transferTo(filePath.toFile());
+            file.transferTo(filePath.toFile()); 
 
             return "/" + folder + "/" + fileName;
         } catch (IOException e) {

@@ -27,12 +27,10 @@ import com.example.cooking.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.hibernate.Hibernate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -58,6 +56,7 @@ public class PaymentService {
     private final DishService dishService;
     private final UpgradeOrderRepository upgradeOrderRepository;
     private final DishOrderRepository dishOrderRepository;
+    private final SellerWalletService sellerWalletService;
     // new
     private final RestTemplate restTemplate;
 
@@ -497,18 +496,25 @@ public class PaymentService {
         }
 System.out.println("Hit3");
         // ==== PHẦN QUAN TRỌNG ====
+        // ===thanh toán dish=====
         if (order.getOrderType().equals("PURCHASE_PRODUCT")) {
             DishOrder dishOrder = dishOrderRepository.findById(order.getId())
                                      .orElseThrow(()-> new CustomException("Khong thay dish order"));
             decreaseDishServingsWithVersion(dishOrder);
             System.out.println("Hit2");
-            order.setOrderStatus(OrderStatus.PAID);
+            order.setOrderStatus(OrderStatus.PAID);  
+            sellerWalletService.addOrderRevenue(order.getSeller().getId(), order.getTotalAmount(), order.getId());
         }
+        
+        // ===============Thanh toán upgrade========================
+        
         if (order.getOrderType().equals("UPGRADE_CHEF")) {
             UpgradeOrder upgradeOrder = upgradeOrderRepository.findById(order.getId())
                                         .orElseThrow(()-> new CustomException("Khong thay upgrade order"));
             upgradeUserToChef(upgradeOrder.getBuyer());
             order.setOrderStatus(OrderStatus.COMPLETED);
+            //tạo ví
+            sellerWalletService.createWallet(order.getBuyer());
         }
         paymentOrder.setPaidAt(LocalDateTime.now());
         paymentOrder.setPaymentStatus(PaymentStatus.SUCCESS);
