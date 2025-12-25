@@ -96,9 +96,9 @@ public class User {
     @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> notifications = new ArrayList<>();
 
-    @Builder.Default
-    @ManyToMany(mappedBy = "participants")
-    private Set<Conversation> conversations = new HashSet<>();
+    // @Builder.Default
+    // @ManyToMany(mappedBy = "participants")
+    // private Set<Conversation> conversations = new HashSet<>();
 
 
     @Builder.Default
