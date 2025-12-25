@@ -2,6 +2,7 @@ package com.example.cooking.controller;
 
 import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
+import com.example.cooking.dto.RecipeIngredientSearchResponse;
 import com.example.cooking.dto.projection.RecipeIngredientSearchProjection;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.model.Recipe;
@@ -9,6 +10,7 @@ import com.example.cooking.repository.RecipeRepository;
 import com.example.cooking.security.MyUserDetails;
 // import com.example.cooking.service.MeiliRecipeService;
 import com.example.cooking.service.RecipeService;
+import com.example.cooking.service.SearchService;
 import com.meilisearch.sdk.model.SearchResult;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +36,8 @@ import java.util.Map;
 public class SearchController {
 
     private final RecipeService recipeService;
-    private final RecipeRepository recipeRepository;
+    // private final RecipeRepository recipeRepository;
+    private final SearchService searchService;
     //  private final MeiliRecipeService meiliService;
 
 
@@ -51,14 +54,14 @@ public class SearchController {
     }
 
     @GetMapping("/search-by-ingredients")
-    public Page<RecipeIngredientSearchProjection> searchByIngredients(
+    public ResponseEntity<ApiResponse<PageDTO<RecipeIngredientSearchResponse>>> searchByIngredients(
             @RequestParam List<Long> ingredientIds,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return recipeRepository.findRecipesByIngredientIds(ingredientIds, pageable);
+        return ApiResponse.ok(searchService.searchByIngredients(ingredientIds, page, size));
     }
+    
 
 // @GetMapping("/recipes/search")
 // public List<Map<String, Object>> searchRecipes(@RequestParam("q") String query) {
