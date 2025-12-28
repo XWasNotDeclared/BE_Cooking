@@ -105,5 +105,22 @@ public class DishController {
         dishService.toggleAllDishesForUser(currentUser, activate);
         return ApiResponse.ok("Da thuc hien");
     }
+
+    // @Operation(
+    //     summary = "Tìm kiếm món",
+    //     description = "API cho phép tìm kiếm món ăn dựa trên từ khóa với phân trang và sắp xếp."
+    // )
+    // @GetMapping("/search")
+    // public ResponseEntity<ApiResponse<PageDTO<UserDTO>>> searchUsers(
+    //         @RequestParam(defaultValue = "") String keyword,
+    //         @RequestParam(defaultValue = "0") int page,
+    //         @RequestParam(defaultValue = "10") int size,
+    //         @RequestParam(defaultValue = "username") String sortBy,
+    //         @RequestParam(defaultValue = "asc") String sortDir) {
+
+    //     PageDTO<UserDTO> userPage = dishService.searchUsers(keyword, page, size, sortBy, sortDir);
+    //     return ApiResponse.ok(userPage);
+    // }
+
 }
 
