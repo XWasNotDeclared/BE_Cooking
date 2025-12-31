@@ -14,6 +14,7 @@ import com.example.cooking.common.enums.Scope;
 import com.example.cooking.common.enums.Status;
 import com.example.cooking.dto.projection.RecipeDailyStat;
 import com.example.cooking.dto.request.NewRecipeRequest;
+import com.example.cooking.dto.request.UpdateRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.security.MyUserDetails;
@@ -37,6 +38,24 @@ public class RecipeController {
         Long recipeId = recipeService.addNewRecipe(currentUser, newRecipeRequest);
         return ApiResponse.ok("Created recipe with ID: " + recipeId);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> updateRecipe(
+            @PathVariable Long id,
+            @ModelAttribute @Valid UpdateRecipeRequest request,
+            @AuthenticationPrincipal MyUserDetails currentUser
+    ) {
+        Long recipeId = recipeService.updateRecipe(id, currentUser, request);
+        return ApiResponse.ok("Da update");
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteRecipe(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails userDetails) {
+        recipeService.deleteRecipe(id,userDetails);
+        return ApiResponse.ok("Da xoa");
+    }
+
+
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('CHEF')")

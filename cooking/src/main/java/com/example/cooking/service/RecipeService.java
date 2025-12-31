@@ -21,6 +21,7 @@ import com.example.cooking.dto.mapper.RecipeMapper;
 import com.example.cooking.dto.request.NewRecipeRequest;
 import com.example.cooking.dto.request.RecipeIngredientRequestDTO;
 import com.example.cooking.dto.request.StepRequestDTO;
+import com.example.cooking.dto.request.UpdateRecipeRequest;
 import com.example.cooking.dto.response.RecipeDetailResponse;
 import com.example.cooking.dto.response.RecipeSummaryDTO;
 import com.example.cooking.event.RecipeCreatedEvent;
@@ -31,6 +32,7 @@ import com.example.cooking.model.RecipeDailyView;
 import com.example.cooking.model.RecipeView;
 import com.example.cooking.model.Step;
 import com.example.cooking.model.User;
+import com.example.cooking.repository.CategoryRepository;
 import com.example.cooking.repository.LikeRepository;
 import com.example.cooking.repository.RecipeDailyViewRepository;
 import com.example.cooking.repository.RecipeRepository;
@@ -39,6 +41,9 @@ import com.example.cooking.repository.RecipeViewRepository;
 import com.example.cooking.repository.UserRepository;
 import com.example.cooking.security.MyUserDetails;
 import com.example.cooking.specifications.RecipeSpecs;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import com.example.cooking.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -57,6 +62,7 @@ public class RecipeService {
     private final RecipeViewRepository recipeViewRepository;
     private final RecipeDailyViewRepository recipeDailyViewRepository;
     private final RecipeIngredientService recipeIngredientService;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public Long addNewRecipe(MyUserDetails currentUser, NewRecipeRequest newRecipeRequest) {
@@ -68,7 +74,7 @@ public class RecipeService {
             recipe.setImageUrl(mainImageUrl);
         } else
             recipe.setImageUrl("/static_resource/public/upload/avatars/avatar-holder.png");
-        
+
         // Update video URL
         String videoUrl = newRecipeRequest.getVideoUrl();
         if (videoUrl != null && !videoUrl.isBlank()) {
@@ -81,7 +87,7 @@ public class RecipeService {
             recipe.setVideoUrl(videoUrl);
         }
 
-        //them steps
+        // them steps
         List<StepRequestDTO> stepDTOs = newRecipeRequest.getSteps();
         for (int i = 0; i < stepDTOs.size(); i++) {
             StepRequestDTO stepRequestDTO = stepDTOs.get(i);
@@ -102,16 +108,117 @@ public class RecipeService {
         recipe.setStatus(Status.APPROVED);
         recipe.setDifficulty(Difficulty.EASY);
         recipe.setUser(user);
-        //thêm nguyên liệu
+        // thêm nguyên liệu
         for (RecipeIngredientRequestDTO dto : newRecipeRequest.getRecipeIngredients()) {
             recipeIngredientService.createFromDTO(dto, recipe);
         }
 
+
         Recipe saved = recipeRepository.save(recipe);
         // phat event sua cong thuc
-        eventPublisher.publishEvent(new RecipeCreatedEvent(saved.getId(), newRecipeRequest,saved.getImageUrl()));
+        eventPublisher.publishEvent(new RecipeCreatedEvent(saved.getId(), newRecipeRequest, saved.getImageUrl()));
         return saved.getId();
     }
+
+    @Transactional
+    public Long updateRecipe(
+            Long recipeId,
+            MyUserDetails currentUser,
+            UpdateRecipeRequest request) {
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new CustomException("Recipe not found"));
+
+        // check owner
+        if (!recipe.getUser().getId().equals(currentUser.getId())) {
+            throw new CustomException("No permission to update recipe");
+        }
+
+        // update basic fields
+        recipe.setTitle(request.getTitle());
+        recipe.setDescription(request.getDescription());
+        recipe.setServings(request.getServings());
+        recipe.setPrepTime(request.getPrepTime());
+        recipe.setCookTime(request.getCookTime());
+        recipe.setDifficulty(request.getDifficulty());
+        recipe.setScope(request.getScope());
+
+        // image
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            String imageUrl = uploadFileService.saveFile(request.getImage(), FileType.RECIPE);
+            recipe.setImageUrl(imageUrl);
+        }
+
+        // video
+        if (request.getVideoUrl() != null && !request.getVideoUrl().isBlank()) {
+            if (!uploadFileService.isValidFileUrl(request.getVideoUrl(), FileType.RECIPEVIDEO)) {
+                throw new CustomException("Invalid video file");
+            }
+            recipe.setVideoUrl(request.getVideoUrl());
+        }
+
+        // ===== Steps =====
+        recipe.getSteps().clear();
+        List<StepRequestDTO> steps = request.getSteps();
+        for (int i = 0; i < steps.size(); i++) {
+            StepRequestDTO dto = steps.get(i);
+            Step step = new Step();
+            step.setRecipe(recipe);
+            step.setDescription(dto.getDescription());
+            step.setStepTime(dto.getStepTime());
+            step.setStepNumber(i + 1);
+
+            if (dto.getImages() != null) {
+                for (MultipartFile file : dto.getImages()) {
+                    String url = uploadFileService.saveFile(file, FileType.STEP);
+                    step.getImageUrls().add(url);
+                }
+            }
+            recipe.getSteps().add(step);
+        }
+
+        // ===== Ingredients =====
+        recipe.getRecipeIngredients().clear();
+        for (RecipeIngredientRequestDTO dto : request.getRecipeIngredients()) {
+            recipeIngredientService.createFromDTO(dto, recipe);
+        }
+
+        // ===== Categories =====
+        recipe.getCategories().clear();
+        if (request.getCategoryIds() != null) {
+        recipe.getCategories().addAll(
+        categoryRepository.findAllById(request.getCategoryIds())
+        );
+        }
+
+        // ===== Tags =====
+        // recipe.getTags().clear();
+        // if (request.getTagIds() != null) {
+        // recipe.getTags().addAll(
+        // tagRepository.findAllById(request.getTagIds())
+        // );
+        // }
+
+        Recipe saved = recipeRepository.save(recipe);
+
+        eventPublisher.publishEvent(
+                new RecipeUpdatedEvent(saved.getId(),request,saved.getImageUrl()));
+
+        return saved.getId();
+    }
+
+    @Transactional
+    public void deleteRecipe(Long recipeId, MyUserDetails userDetails) {
+        Recipe recipe = recipeRepository.findById(recipeId)
+            .orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
+        // check owner
+        if (!recipe.getUser().getId().equals(userDetails.getId())) {
+            throw new CustomException("No permission to update recipe");
+        }
+        recipeSearchIndexRepository.deleteByRecipeId(recipeId);
+        recipeRepository.delete(recipe);
+        // Step sẽ bị xóa theo nhờ cascade + orphanRemoval
+    }
+    
 
     public void setRecipeScope(MyUserDetails currentUser, Long recipeId, Scope scope) {
         User user = userRepository.findById(currentUser.getId())
@@ -192,7 +299,7 @@ public class RecipeService {
         // 2. Kiểm tra quyền truy cập thông qua AccessService
         Long currentUserId = currentUser != null ? currentUser.getId() : null;
         accessService.checkRecipeAccess(recipe, currentUserId);
-        
+
         // Tăng lượt xem
         incrementView(recipe, currentUserId);
         RecipeDetailResponse dto = recipeMapper.toRecipeResponse(recipe);
@@ -234,9 +341,12 @@ public class RecipeService {
         recipeSummaries = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaries, currentUser.getId());
         return new PageDTO<>(recipePage, recipeSummaries);
     }
-/////////////////
-    public PageDTO<RecipeSummaryDTO> getRecipesByIngredientId(MyUserDetails currentUser,Long ingredientId, Pageable pageable) {
-        Page<Recipe> recipePage = recipeRepository.findRecipesByIngredientIdAndScopeAndStatus(ingredientId, Scope.PUBLIC, Status.APPROVED, pageable);
+
+    /////////////////
+    public PageDTO<RecipeSummaryDTO> getRecipesByIngredientId(MyUserDetails currentUser, Long ingredientId,
+            Pageable pageable) {
+        Page<Recipe> recipePage = recipeRepository.findRecipesByIngredientIdAndScopeAndStatus(ingredientId,
+                Scope.PUBLIC, Status.APPROVED, pageable);
         if (recipePage.isEmpty()) {
             return PageDTO.empty(pageable);
         }
@@ -246,7 +356,6 @@ public class RecipeService {
         return new PageDTO<>(recipePage, recipeSummaries);
     }
     /////////////////////
-    
 
     //////////
     public PageDTO<RecipeSummaryDTO> getRecipesByCategoryIds(

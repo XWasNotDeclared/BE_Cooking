@@ -84,6 +84,15 @@ public class FollowService {
         return new PageDTO<>(followingPage, following);
     }
 
+
+    public PageDTO<UserDTO> getSuggestChef(Pageable pageable, MyUserDetails userDetails) {
+        Page<User> followingPage = userRepository.findSuggestedChefUsers(userDetails.getId(), "CHEF", pageable);
+        if (followingPage.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+        List<UserDTO> following = userMapper.toUserDTOList(followingPage.getContent());
+        return new PageDTO<>(followingPage, following);
+    }
     public PageDTO<UserDTO> getFollowerUsers(Long userId, Pageable pageable) {
         Page<User> followersPage = userRepository.findFollowerUsers(userId, pageable);
         if (followersPage.isEmpty()) {

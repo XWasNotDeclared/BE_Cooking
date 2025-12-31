@@ -37,10 +37,12 @@ public class FollowController {
     //TODO: Sua lai holder
     @GetMapping("/suggested")
     public  ResponseEntity<ApiResponse<PageDTO<UserDTO>>> getSuggestedFollow(
+            @AuthenticationPrincipal MyUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return ApiResponse.ok(followService.getPlaceHoder(pageable));
+        // return ApiResponse.ok(followService.getPlaceHoder(pageable));
+        return ApiResponse.ok(followService.getSuggestChef(pageable, userDetails));
     }
 
     @GetMapping("/users/{userId}/following")

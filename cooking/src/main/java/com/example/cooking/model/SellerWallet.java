@@ -1,6 +1,10 @@
 package com.example.cooking.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
@@ -21,6 +25,9 @@ public class SellerWallet {
 
     @Column(name = "pending_balance", nullable = false)
     private Long pendingBalance;
-
+// ----add k d
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WalletTransaction> walletTransactions = new ArrayList<>();
+// -end add--
     // getters & setters
 }
