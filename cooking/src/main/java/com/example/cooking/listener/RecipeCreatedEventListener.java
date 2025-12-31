@@ -43,9 +43,7 @@ public class RecipeCreatedEventListener {
             outbox.setEventType("RECIPE_CREATED");
             outbox.setPayload(payloadJson);
             outbox.setProcessed(false);
-
             outboxRepository.save(outbox);
-
             System.out.println("Outbox event saved: " + outbox);
 
         } catch (Exception ex) {

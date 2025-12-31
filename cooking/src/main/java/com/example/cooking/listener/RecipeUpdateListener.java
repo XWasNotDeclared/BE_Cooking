@@ -1,53 +1,57 @@
 package com.example.cooking.listener;
 
+import java.util.stream.Collectors;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import com.example.cooking.dto.payloads.PayloadRecipeJson;
+import com.example.cooking.dto.request.NewRecipeRequest;
+import com.example.cooking.dto.request.RecipeIngredientRequestDTO;
+import com.example.cooking.dto.request.UpdateRecipeRequest;
+import com.example.cooking.event.RecipeCreatedEvent;
 import com.example.cooking.event.RecipeUpdatedEvent;
-import jakarta.transaction.Transactional;
+import com.example.cooking.model.OutBoxEvent;
+import com.example.cooking.repository.OutBoxEventRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "ai.modules.chat", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class RecipeUpdateListener {
 
-    // @Async // chạy bất đồng bộ trên thread pool riêng
+    private final OutBoxEventRepository outboxRepository;
+    private final ObjectMapper objectMapper;
+
     @EventListener
-    @Transactional
-    public void onRecipeUpdated(RecipeUpdatedEvent event) {
+    public void handleRecipeUpdateEvent(RecipeUpdatedEvent event) {
+        try {
+            // Tạo payload JSON
+            UpdateRecipeRequest newRecipeRequest = event.getUpdateRecipeRequest();
+            String payloadJson = objectMapper.writeValueAsString(
+               new PayloadRecipeJson(newRecipeRequest.getTitle(),
+                                            newRecipeRequest.getDescription(),
+                                            newRecipeRequest.getRecipeIngredients().stream().map(RecipeIngredientRequestDTO::getRawName).collect(Collectors.joining(", ")),
+                                            newRecipeRequest.getSteps().stream().map(step -> { return step.getStepNumber() + ": "+step.getDescription();}).collect(Collectors.joining(",")),
+                                            event.getImageUrl())
+            );
+
+            OutBoxEvent outbox = new OutBoxEvent();
+            outbox.setAggregateType("RECIPE");
+            outbox.setAggregateId(event.getRecipeId());
+            outbox.setEventType("RECIPE_UPDATE");
+            outbox.setPayload(payloadJson);
+            outbox.setProcessed(false);
+
+            outboxRepository.save(outbox);
+
+            System.out.println("Outbox event saved: " + outbox);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }
-
-
-// package com.example.cooking.listener;
-
-// import org.springframework.context.event.EventListener;
-// import org.springframework.stereotype.Component;
-// import com.example.cooking.repository.RecipeRepository;
-// import com.example.cooking.event.RecipeUpdatedEvent;
-// import jakarta.transaction.Transactional;
-// import lombok.RequiredArgsConstructor;
-// import com.example.cooking.model.Recipe;
-// import com.example.cooking.service.MeiliRecipeService;
-// import com.fasterxml.jackson.core.JsonProcessingException;
-
-// @Component
-// @RequiredArgsConstructor
-// public class RecipeSearchIndexListener {
-
-//     private final RecipeRepository recipeRepo;
-//     private final MeiliRecipeService meiliService; // inject service Meilisearch
-
-//     @EventListener
-//     @Transactional
-//     public void onRecipeUpdated(RecipeUpdatedEvent event) {
-//         Recipe recipe = recipeRepo.findById(event.getRecipeId())
-//                 .orElseThrow(() -> new RuntimeException("Recipe not found"));
-
-//         try {
-//             meiliService.indexRecipe(recipe); // index lên Meilisearch
-//         } catch (JsonProcessingException e) {
-//             e.printStackTrace();
-//             // hoặc log lỗi theo chuẩn project
-//         }
-//     }
-// }

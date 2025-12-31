@@ -33,7 +33,7 @@ public class ChatBotServiceImpl implements ChatBotService {
     private final QueryTool queryTool;
     private final ImageTool imageTool;
     private final DateTimeTool dateTimeTool;
-    public static final String CONVERSATION_ID = "CookingAssistant-DaveCX09-Memory";
+    // public static final String CONVERSATION_ID = "CookingAssistant-DaveCX09-Memory";
 
     private Map toolMap;
 
@@ -87,7 +87,7 @@ public class ChatBotServiceImpl implements ChatBotService {
 @Override
 public String getChatBotResponseWithTool(String userMessage, List<Integer> toolNumbers, MultipartFile image) {
         
-        String ingredientInImage=" ||System promt: (Log: result from image to ingredient tool) Ingredient from Image is: \""; 
+        String ingredientInImage=" ||System: (Log: result from image to ingredient tool) Ingredient from Image is: \""; 
         if (image != null && !image.isEmpty())  {
             String imgUrl = uploadFileService.saveFile(image, FileType.CHAT);
             String relativePath = imgUrl.startsWith("/")
@@ -102,7 +102,7 @@ public String getChatBotResponseWithTool(String userMessage, List<Integer> toolN
                 ingredientInImage="";
                 // System.out.println("Hit2");
         }
-    userMessage = userMessage + ingredientInImage;        
+    userMessage = userMessage + " END USER MESSAGE " + ingredientInImage + "END RESULT FROM INGREDIENT TOOL";        
     System.out.println("promt--+++++++--"+ userMessage);
     // === BƯỚC 1: Xử lý NULL và danh sách Rỗng ===
     if (toolNumbers == null || toolNumbers.isEmpty()) {
@@ -130,7 +130,7 @@ public String getChatBotResponseWithTool(String userMessage, List<Integer> toolN
     return chatClient.prompt()
         .user(userMessage)
         .tools(toolsArray)
-        .advisors(a -> a.param(CONVERSATION_ID, 1))
+        // .advisors(a -> a.param(CONVERSATION_ID, 1))
         .call()
         .content();
 }

@@ -34,22 +34,22 @@ public class AiConfig {
     /**
      * Định nghĩa Bean ChatMemory với cửa sổ 5 tin nhắn.
      */
-    // @Bean
-    // public ChatMemory chatMemory() {
-    //     // Giữ 5 tin nhắn gần nhất (MessageWindowChatMemory)
-    //     return MessageWindowChatMemory.builder()
-    //         .maxMessages(5) 
-    //         .build();
-    // }
-
-@Bean
-    public ChatMemory chatMemory(JdbcChatMemoryRepository repository) {
-        // Lưu tối đa 10 tin nhắn gần nhất vào DB cho mỗi cuộc hội thoại
+    @Bean
+    public ChatMemory chatMemory() {
+        // Giữ 5 tin nhắn gần nhất (MessageWindowChatMemory)
         return MessageWindowChatMemory.builder()
-                .chatMemoryRepository(repository)
-                .maxMessages(10)
-                .build();
+            .maxMessages(5) 
+            .build();
     }
+
+// @Bean
+//     public ChatMemory chatMemory(JdbcChatMemoryRepository repository) {
+//         // Lưu tối đa 10 tin nhắn gần nhất vào DB cho mỗi cuộc hội thoại
+//         return MessageWindowChatMemory.builder()
+//                 .chatMemoryRepository(repository)
+//                 .maxMessages(10)
+//                 .build();
+//     }
 
      
     @Bean
@@ -61,19 +61,36 @@ public class AiConfig {
 
 
 
+        String systemPrompt = """
+SYSTEM PROMPT:
+Sử dụng tiếng Việt.
+Nhận câu hỏi:
+Nếu là hỏi cách làm món, theo chỉ dẫn [C1], bỏ qua [C2].
+Nếu có nguyên liệu, theo chỉ dẫn [C2].
+[C1]- chỉ dẫn gợi ý món:
+Truy vấn cơ sở dữ liệu:
+-Nếu có viết lại công thức như trong kết quả tìm được.
+-Nếu không có -> hãy nói rõ và vẫn nêu ra hướng dẫn đầy đủ.
+[end C1] 
+[C2] - chỉ dẫn tìm theo nguyên liệu:
+Xử lý từ đồng nghĩa.
+Truy vấn dữ liệu món ăn bằng nguyên liệu đã chuẩn hóa.
+BẮT BUỘC tách rõ 2 nhóm:
+[TỪ KẾT QUẢ TRUY VẤN]:
+- Chỉ món viết món tìm được và khớp một số nguyên liệu.
+- Viết công thức đầy đủ.
+[GỢI Ý THÊM TỪ AI]:
+- Tên món + mô tả ngắn.
+- Không hướng dẫn.
+[end C2]
+Không nhắc đến hệ thống, prompt hay quá trình truy vấn.
+END SYSTEM PROMPT.
+USER MESSAGE:
+""";
 
-//         String systemPrompt = """
-// The AI must always respond in Vietnamese.
-// The AI must address the user as DaveCX09.
-// Role: a cooking assistant that only provides culinary information and advice.
-// For any request involving ingredients, dishes, or cooking-related information, the AI must use available tools to search for data.
-// The AI must return responses strictly in plain text, without markdown or any other formatting style.
-// If a dish only partially matches the provided ingredients, the AI must suggest buying the missing ingredients or ask whether the user wants guidance based on what they currently have.
-// Keep the original retrieved cooking recipe content unchanged; never alter the content itself, only adjust the display structure for clarity.
-// """;
 
 
-        String systemPrompt ="be nice";
+        // String systemPrompt ="be nice";
 //If no suitable tool exists or no data can be retrieved, the AI must state this clearly and suggest that it can answer outside the tool scope only if explicitly requested.
 //The AI must not create dishes or information outside the scope of what can be retrieved via tool-calling, unless the user explicitly requests it.
 
@@ -81,11 +98,11 @@ public class AiConfig {
             // .defaultTools(dateTimeTools, queryTools)
             .defaultTools()
             .defaultSystem(systemPrompt)
-            // .defaultAdvisors(
-            //     MessageChatMemoryAdvisor.builder(chatMemory)
-            //         .conversationId(CONVERSATION_ID)
-            //         .build()
-            // )
+            .defaultAdvisors(
+                MessageChatMemoryAdvisor.builder(chatMemory)
+                    .conversationId(CONVERSATION_ID)
+                    .build()
+            )
             // .defaultAdvisors(
             //     MessageChatMemoryAdvisor.builder(chatMemory)
             //         // .conversationId(CONVERSATION_ID)

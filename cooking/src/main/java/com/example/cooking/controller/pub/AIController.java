@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/test")
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "ai.modules.chat", name = "enabled", havingValue = "true", matchIfMissing = false)
-public class TestController {
+public class AIController {
     private final com.example.cooking.service.PineconeDataService pineconeDataService;
     private final ChatBotService chatBotService;
     private final ToolService toolService;
