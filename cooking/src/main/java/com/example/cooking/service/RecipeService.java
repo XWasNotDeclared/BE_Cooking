@@ -409,6 +409,80 @@ public class RecipeService {
         return new PageDTO<>(recipePage, dtos);
     }
 
+
+        // holder //
+    public PageDTO<RecipeSummaryDTO> getMyFollingRecipes(MyUserDetails currentUser, Pageable pageable) {
+
+        // Query JPA thật, không điều kiện
+        Page<Recipe> recipePage = recipeRepository.findRecipesByFollowedUsers(currentUser.getId(), pageable);
+
+        if (recipePage.isEmpty()) {
+            return PageDTO.empty(pageable);
+        }
+
+        // Map sang DTO
+        List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(recipePage.getContent());
+
+        // Enrich như thật để controller hoạt động y hệt các endpoint khác
+        dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, currentUser.getId());
+
+        return new PageDTO<>(recipePage, dtos);
+    }
+
+    public PageDTO<RecipeSummaryDTO> getTopViewRecipes(
+        MyUserDetails currentUser, 
+        LocalDateTime startDate, 
+        LocalDateTime endDate, 
+        Pageable pageable) {
+
+    // 1. Truy vấn DB lấy top views (chỉ lấy các bài đã PUBLISHED)
+    Page<Recipe> recipePage = recipeRepository.findByCreatedAtBetweenAndStatusAndScopeOrderByViewsDesc(
+            startDate, 
+            endDate, 
+            Status.APPROVED,
+            Scope.PUBLIC,
+            pageable
+    );
+
+    if (recipePage.isEmpty()) {
+        return PageDTO.empty(pageable);
+    }
+
+    // 2. Map sang DTO
+    List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(recipePage.getContent());
+
+    // 3. Enrich dữ liệu (like, save status, etc.)
+    dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, currentUser.getId());
+
+    return new PageDTO<>(recipePage, dtos);
+}
+///////////////////////////////////
+public PageDTO<RecipeSummaryDTO> getTopLikeRecipes(
+        MyUserDetails currentUser, 
+        LocalDateTime startDate, 
+        LocalDateTime endDate, 
+        Pageable pageable) {
+
+    // 1. Logic mặc định 7 ngày (có thể đưa vào Controller hoặc để ở đây)
+    if (endDate == null) endDate = LocalDateTime.now();
+    if (startDate == null) startDate = endDate.minusDays(7);
+
+    // 2. Truy vấn DB
+    Page<Recipe> recipePage = recipeRepository.findTopLikedRecipesBetween(startDate, endDate, Scope.PUBLIC, Status.APPROVED, pageable);
+
+    if (recipePage.isEmpty()) {
+        return PageDTO.empty(pageable);
+    }
+
+    // 3. Map sang DTO
+    List<RecipeSummaryDTO> dtos = recipeMapper.toSummaryDTOList(recipePage.getContent());
+
+    // 4. Enrich dữ liệu (để hiện thị user đã like hay chưa, v.v.)
+    dtos = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(dtos, currentUser.getId());
+
+    return new PageDTO<>(recipePage, dtos);
+}
+
     //////////////////////////////////////////
     public PageDTO<RecipeSummaryDTO> getMyLikedRecipes(MyUserDetails currentUser, Pageable pageable) {
         Page<Recipe> recipePage = likeRepository.findRecipesByUserId(currentUser.getId(), pageable);
@@ -566,36 +640,6 @@ public class RecipeService {
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Khong tim thay recipe voi id: " + id));
         return recipe;
-    }
-    ///////////////////////////////////////////////////////////////////////////////
-    // Test///////////
-    //////
-    // Search by keyword
-
-    public PageDTO<RecipeSummaryDTO> searchByKeyWord(String keyWord, Pageable pageable, MyUserDetails currentUser) {
-        // 1. Format keyword cho BOOLEAN MODE: mỗi từ bắt buộc có dấu +
-        // Ví dụ: "món chiên" -> "+món +chiên"
-        String booleanKeyword = Arrays.stream(keyWord.trim().split("\\s+"))
-                .map(word -> "+" + word)
-                .collect(Collectors.joining(" "));
-
-        // 2. Gọi repository với BOOLEAN MODE
-        Page<Recipe> recipePage = recipeSearchIndexRepository.searchRecipesByKeyWordPage(booleanKeyword, pageable);
-
-        // 3. Nếu không có kết quả, trả về PageDTO rỗng
-        if (recipePage.isEmpty()) {
-            return PageDTO.empty(pageable);
-        }
-
-        // 4. Map entity sang DTO
-        List<RecipeSummaryDTO> recipeSummaryDTOs = recipeMapper.toSummaryDTOList(recipePage.getContent());
-
-        // 5. Enrich dữ liệu thêm theo user
-        recipeSummaryDTOs = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(recipeSummaryDTOs,
-                currentUser.getId());
-
-        // 6. Trả về PageDTO với dữ liệu đã map
-        return new PageDTO<>(recipePage, recipeSummaryDTOs);
     }
 
     // Search tất cả nguyên liệu (dùng Specification với LIKE)

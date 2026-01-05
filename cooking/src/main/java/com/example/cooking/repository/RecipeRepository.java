@@ -213,6 +213,8 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
                 JOIN recipe_ingredients ri ON r.recipe_id = ri.recipe_id
                 JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
                 LEFT JOIN input inp ON ri.ingredient_id = inp.ingredient_id
+                WHERE r.status = :status  
+                AND r.scope  = :scope  
         )
         SELECT
                 rm.recipe_id,
@@ -267,6 +269,8 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
                 FROM recipes r
                 JOIN recipe_ingredients ri ON r.recipe_id = ri.recipe_id
                 LEFT JOIN input inp ON ri.ingredient_id = inp.ingredient_id
+                WHERE r.status = :status  
+                AND r.scope  = :scope
         )
         SELECT COUNT(DISTINCT recipe_id)
         FROM recipe_match
@@ -274,7 +278,43 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> , JpaSpeci
         """,
         nativeQuery = true)
         Page<RecipeIngredientSearchProjection> findRecipesByIngredientIds(
-        @Param("ingredientIds") List<Long> ingredientIds,
-        Pageable pageable
+                @Param("ingredientIds") List<Long> ingredientIds,
+                @Param("scope") String scope,
+                @Param("status") String status,
+                Pageable pageable
         );
+
+
+        @Query("SELECT r FROM Recipe r " +
+           "JOIN r.user u " +
+           "JOIN u.followers f " +
+           "WHERE f.follower.id = :currentUserId " +
+           "AND r.status = 'APPROVED' " + // Giả sử bạn chỉ muốn hiện công thức đã xuất bản
+           "AND r.scope = 'PUBLIC' " +
+           "ORDER BY r.createdAt DESC")
+    Page<Recipe> findRecipesByFollowedUsers(@Param("currentUserId") Long currentUserId, Pageable pageable);
+
+    // Lấy các recipe trong khoảng thời gian, sắp xếp theo views giảm dần
+//   r.createdAt hoặc r.updatedAt
+    Page<Recipe> findByCreatedAtBetweenAndStatusAndScopeOrderByViewsDesc(
+            LocalDateTime start, 
+            LocalDateTime end, 
+            Status status,
+            Scope scope,
+            Pageable pageable
+    );
+///////////////////////////////
+    @Query("SELECT r FROM Recipe r " +
+           "JOIN RecipeLike rl ON rl.recipe.id = r.id " +
+           "WHERE rl.createdAt BETWEEN :start AND :end " +
+           "AND r.status = :status " +
+           "AND r.scope = :scope " +
+           "GROUP BY r.id " +
+           "ORDER BY COUNT(rl.id) DESC")
+    Page<Recipe> findTopLikedRecipesBetween(
+            @Param("start") LocalDateTime start, 
+            @Param("end") LocalDateTime end, 
+            @Param("scope") Scope scope,     
+            @Param("status") Status status,     
+            Pageable pageable);
 }

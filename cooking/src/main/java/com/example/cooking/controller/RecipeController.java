@@ -30,7 +30,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 public class RecipeController {
     private final RecipeService recipeService;
 
-    @PostMapping(consumes = {"multipart/form-data"})
+    @PostMapping(consumes = { "multipart/form-data" })
     @PreAuthorize("hasRole('CHEF')")
     public ResponseEntity<ApiResponse<String>> createRecipe(
             @Valid @ModelAttribute NewRecipeRequest newRecipeRequest,
@@ -43,19 +43,17 @@ public class RecipeController {
     public ResponseEntity<ApiResponse<String>> updateRecipe(
             @PathVariable Long id,
             @ModelAttribute @Valid UpdateRecipeRequest request,
-            @AuthenticationPrincipal MyUserDetails currentUser
-    ) {
+            @AuthenticationPrincipal MyUserDetails currentUser) {
         Long recipeId = recipeService.updateRecipe(id, currentUser, request);
         return ApiResponse.ok("Da update");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteRecipe(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails userDetails) {
-        recipeService.deleteRecipe(id,userDetails);
+    public ResponseEntity<ApiResponse<String>> deleteRecipe(@PathVariable Long id,
+            @AuthenticationPrincipal MyUserDetails userDetails) {
+        recipeService.deleteRecipe(id, userDetails);
         return ApiResponse.ok("Da xoa");
     }
-
-
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('CHEF')")
@@ -96,25 +94,53 @@ public class RecipeController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        PageDTO<RecipeSummaryDTO> recipes = recipeService.getPlaceHolder(currentUser, pageable);
+        PageDTO<RecipeSummaryDTO> recipes = recipeService.getMyFollingRecipes(currentUser, pageable);
         return ApiResponse.ok(recipes);
     }
 
-    //TODO: khong truyen date thi de 7 ngay
-    @GetMapping("/top-like-recipes")
+    // TODO: khong truyen date thi de 7 ngay
+@GetMapping("/top-like-recipes")
+@PreAuthorize("hasRole('USER')")
+public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getTopLikeRecipes(
+        @AuthenticationPrincipal MyUserDetails currentUser,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+
+    // Xử lý giá trị mặc định ngay tại Controller để rõ ràng
+    LocalDateTime finalEnd = (endDate == null) ? LocalDateTime.now() : endDate;
+    LocalDateTime finalStart = (startDate == null) ? finalEnd.minusDays(7) : startDate;
+
+    Pageable pageable = PageRequest.of(page, size);
+    PageDTO<RecipeSummaryDTO> recipes = recipeService.getTopLikeRecipes(currentUser, finalStart, finalEnd, pageable);
+    
+    return ApiResponse.ok(recipes);
+}
+
+    // TODO: khong truyen date thi de 7 ngay
+    @GetMapping("/top-new-recipes")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getTopLikeRecipes(
+    public ResponseEntity<ApiResponse<PageDTO<RecipeSummaryDTO>>> getTopViewRecipes(
             @AuthenticationPrincipal MyUserDetails currentUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
 
+        // Xử lý logic mặc định 7 ngày nếu không có date
+        if (endDate == null) {
+            endDate = LocalDateTime.now();
+        }
+        if (startDate == null) {
+            startDate = endDate.minusDays(7);
+        }
+
         Pageable pageable = PageRequest.of(page, size);
-        PageDTO<RecipeSummaryDTO> recipes = recipeService.getPlaceHolder(currentUser, pageable);
+        PageDTO<RecipeSummaryDTO> recipes = recipeService.getTopViewRecipes(currentUser, startDate, endDate, pageable);
+
         return ApiResponse.ok(recipes);
     }
-
 
     @GetMapping("/liked")
     @PreAuthorize("hasRole('USER')")
@@ -137,10 +163,9 @@ public class RecipeController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        PageDTO<RecipeSummaryDTO> recipes = recipeService.getLikedRecipesByUserId(currentUser,userId,pageable);
+        PageDTO<RecipeSummaryDTO> recipes = recipeService.getLikedRecipesByUserId(currentUser, userId, pageable);
         return ApiResponse.ok(recipes);
     }
-
 
     @GetMapping("/recent")
     @PreAuthorize("hasRole('USER')")
@@ -159,11 +184,11 @@ public class RecipeController {
      * Lấy danh sách công thức của tôi
      * Hỗ trợ lọc: status, scope, keyword
      * Ví dụ:
-     * - Đang chờ duyệt:   ?status=PENDING
-     * - Công khai:        ?scope=PUBLIC
-     * - Nháp:             ?scope=DRAFT
-     * - Đã bị từ chối:    ?status=REJECTED
-     * - Tìm "phở":        ?keyword=phở
+     * - Đang chờ duyệt: ?status=PENDING
+     * - Công khai: ?scope=PUBLIC
+     * - Nháp: ?scope=DRAFT
+     * - Đã bị từ chối: ?status=REJECTED
+     * - Tìm "phở": ?keyword=phở
      */
     // 🔹 Endpoint lọc linh hoạt
     @GetMapping("/my-recipes/filter")

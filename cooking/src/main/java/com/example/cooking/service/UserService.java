@@ -18,6 +18,7 @@ import com.example.cooking.common.enums.UserStatus;
 import com.example.cooking.dto.UserDTO;
 import com.example.cooking.dto.mapper.UserMapper;
 import com.example.cooking.dto.request.RegisterRequest;
+import com.example.cooking.dto.request.ResetPassRequest;
 import com.example.cooking.dto.request.UpdateProfileRequest;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.exception.DuplicateFieldException;
@@ -75,6 +76,7 @@ public class UserService {
         User savedUser = userRepository.save(user);
         return savedUser.getId();
     }
+    
 
     @Transactional
     public Long addChef(RegisterRequest registerRequest) {
@@ -117,7 +119,19 @@ public class UserService {
         sellerWalletService.createWallet(user);
         return savedUser.getId();
     }
+    @Transactional
+    public void updatePassword(String token, String email, ResetPassRequest resetPassRequest) {
+        if (!resetPassRequest.getPassword().equals(resetPassRequest.getConfirmPassword())) {
+            throw new CustomException("Mat khau xac nhan sai !");
+        }
+        //Tìm user trong DB
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException("User không tồn tại"));
 
+        //Cập nhật mật khẩu mới (đã mã hóa)
+        user.setPassword(passwordEncoder.encode(resetPassRequest.getPassword()));
+        userRepository.save(user);
+    }
     @Transactional
     public UserDTO updateUserProfile(Long userId, UpdateProfileRequest request) {
         User user = userRepository.findById(userId)
