@@ -34,8 +34,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/user/test/recipes")
 public class SearchController {
-
-    private final RecipeService recipeService;
     // private final RecipeRepository recipeRepository;
     private final SearchService searchService;
     //  private final MeiliRecipeService meiliService;
@@ -49,7 +47,7 @@ public class SearchController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
                 Pageable pageable = PageRequest.of(page, size);
-        PageDTO<RecipeSummaryDTO> recipes = recipeService.searchByKeyWord(keyword, pageable, currentUser);
+        PageDTO<RecipeSummaryDTO> recipes = searchService.searchByKeyWord(keyword, pageable, currentUser);
         return ApiResponse.ok(recipes);
     }
 

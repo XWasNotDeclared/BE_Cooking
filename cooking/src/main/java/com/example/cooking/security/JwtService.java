@@ -36,6 +36,21 @@ public class JwtService {
 
     }
 
+
+    // Thêm vào JwtService.java
+    public String generateResetPasswordToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "RESET_PASSWORD"); 
+        
+        return Jwts.builder()
+                .claims(claims)
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000)) // Fix cứng 15 phút
+                .signWith(getSignKey())
+                .compact();
+    }
+
     private SecretKey getSignKey() {
         byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -70,4 +85,13 @@ public class JwtService {
         final String sub = extractSubject(token);
         return (sub.equals(subject) && !isTokenExpired(token));
     }
+
+    public boolean isTokenValid(String token) {
+    try {
+        extractAllClaims(token);
+        return true;
+    } catch (Exception e) {
+        return false;
+    }
+}
 }

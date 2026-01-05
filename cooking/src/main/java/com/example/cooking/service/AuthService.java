@@ -11,6 +11,7 @@ import com.example.cooking.exception.CustomException;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.UserRepository;
 import com.example.cooking.security.JwtService;
+import com.example.cooking.security.MyUserDetails;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +22,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final UserMapper userMapper;
+    private final EmailService emailService;
 
     public LoginResponse handleLoginSuccess(String email) {
         User user = userRepository.findByEmail(email)
@@ -52,4 +54,11 @@ public class AuthService {
         refreshTokenService.deleteAllTokens(userId);
     }
 
+    public void handleForgotPassword(String email) {
+        // 1. Tạo JWT token (dùng JwtService bạn đã có)
+        String token = jwtService.generateResetPasswordToken(email);
+
+        // 2. Gửi mail
+        emailService.sendResetPasswordEmail(email, token);
+    }
 }
