@@ -667,4 +667,22 @@ public PageDTO<RecipeSummaryDTO> getTopLikeRecipes(
     // return recipePage.map(recipeMapper::toSummaryDTO);
     // }
 
+    public PageDTO<RecipeSummaryDTO> searchByKeyWord(String keyWord, Pageable pageable, MyUserDetails currentUser) {
+    // 1. Giữ nguyên từ khóa tự nhiên (ví dụ: "gà tần")
+    String cleanKeyword = keyWord.trim();
+
+    // 2. Gọi repository với chế độ Natural Language + LIKE fallback
+    Page<Recipe> recipePage = recipeSearchIndexRepository.searchNaturalLanguage(cleanKeyword, pageable);
+
+    if (recipePage.isEmpty()) {
+        return PageDTO.empty(pageable);
+    }
+
+    // 3. Mapping và Enrich dữ liệu
+    List<RecipeSummaryDTO> recipeSummaryDTOs = recipeMapper.toSummaryDTOList(recipePage.getContent());
+    recipeSummaryDTOs = recipeEnrichmentService.enrichAllForRecipeSummaryDTOs(
+            recipeSummaryDTOs, currentUser.getId());
+
+    return new PageDTO<>(recipePage, recipeSummaryDTOs);
+}
 }
