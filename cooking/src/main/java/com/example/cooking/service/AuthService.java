@@ -1,6 +1,7 @@
 package com.example.cooking.service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -55,10 +56,14 @@ public class AuthService {
     }
 
     public void handleForgotPassword(String email) {
-        // 1. Tạo JWT token (dùng JwtService bạn đã có)
-        String token = jwtService.generateResetPasswordToken(email);
+        Optional<User> userOpt = userRepository.findByEmail(email);
 
-        // 2. Gửi mail
-        emailService.sendResetPasswordEmail(email, token);
+        if (userOpt.isPresent()) {
+            String token = jwtService.generateResetPasswordToken(email,userOpt.get().getPassword());
+            emailService.sendResetPasswordEmail(email, token);
+        } else {
+
+        }
     }
+
 }
