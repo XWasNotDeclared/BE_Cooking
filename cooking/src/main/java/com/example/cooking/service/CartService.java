@@ -1,6 +1,7 @@
 package com.example.cooking.service;
 
 import com.example.cooking.dto.request.AddCartItemRequest;
+import com.example.cooking.dto.request.UpdateCartItemRequest;
 import com.example.cooking.exception.CustomException;
 import com.example.cooking.dto.CartDto;
 import com.example.cooking.dto.CartItemDto;
@@ -87,6 +88,40 @@ public class CartService {
                 .orElseThrow(() -> new CustomException("Active cart not found for seller"));
 
         cart.getItems().removeIf(i -> i.getDish().getId().equals(dishId));
+        cartRepository.save(cart);
+        return mapToDto(cart);
+    }
+    
+    /** Cập nhật số lượng món trong ACTIVE cart */
+    public CartDto updateItemQuantity(MyUserDetails myUserDetails, Long cartId, UpdateCartItemRequest request) {
+        User user = userRepository.getReferenceById(myUserDetails.getId());
+
+        // 1. Tìm giỏ hàng ACTIVE của user
+        Cart cart = cartRepository.findByIdAndUserIdAndStatus(cartId, user.getId(), CartStatus.ACTIVE)
+                .orElseThrow(() -> new CustomException("Active cart not found"));
+
+        // 2. Tìm item trong giỏ
+        CartItem item = cart.getItems().stream()
+                .filter(i -> i.getDish().getId().equals(request.getDishId()))
+                .findFirst()
+                .orElseThrow(() -> new CustomException("Item not found in cart"));
+
+        // 3. Nếu số lượng <= 0, xóa luôn món đó khỏi giỏ
+        if (request.getQuantity() <= 0) {
+            cart.getItems().remove(item);
+        } else {
+            // 4. Kiểm tra xem món ăn còn đủ số lượng không
+            Dish dish = item.getDish();
+            if (dish.getRemainingServings() < request.getQuantity()) {
+                throw new CustomException("Not enough servings available for " + dish.getName());
+            }
+            
+            // 5. Cập nhật số lượng mới
+            item.setQuantity(request.getQuantity());
+            // Cập nhật lại snapshot giá nếu giá món ăn thay đổi (tùy nghiệp vụ của bạn)
+            item.setPriceSnapshot(dish.getPrice()); 
+        }
+
         cartRepository.save(cart);
         return mapToDto(cart);
     }
