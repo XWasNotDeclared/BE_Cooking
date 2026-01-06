@@ -87,12 +87,8 @@ public class AuthController {
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestParam String token, @Valid @RequestBody ResetPassRequest request) {
-        if (!jwtService.isTokenValid(token)) {
-            return ApiResponse.error(HttpStatus.BAD_REQUEST,"Token không hợp lệ");
-        }
-            // Lấy email từ token
-        String email = jwtService.extractSubject(token);
-        userService.updatePassword(token,email, request);
+
+        userService.updatePassword(token,request);
         return ApiResponse.ok("Đổi mật khẩu thành công!");
     }
 }

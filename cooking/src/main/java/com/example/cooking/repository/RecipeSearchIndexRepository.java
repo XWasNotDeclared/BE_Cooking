@@ -104,20 +104,41 @@ public interface RecipeSearchIndexRepository extends JpaRepository<RecipeSearchI
             @Param("secondWord") String secondWord,
             Pageable pageable);
 
-    @Query(value = """
-            SELECT r.*,
-                ( (MATCH(idx.search_text) AGAINST(:keyword IN NATURAL LANGUAGE MODE)) +
+//     @Query(value = """
+//             SELECT r.*,
+//                 ( (MATCH(idx.search_text) AGAINST(:keyword IN NATURAL LANGUAGE MODE)) +
+//                   (CASE WHEN r.title LIKE %:keyword% THEN 10 ELSE 0 END) ) as relevance
+//             FROM recipes r
+//             JOIN recipe_search_index idx ON r.recipe_id = idx.recipe_id
+//             WHERE MATCH(idx.search_text) AGAINST(:keyword IN NATURAL LANGUAGE MODE)
+//                OR r.title LIKE %:keyword%
+//             ORDER BY relevance DESC
+//             """, countQuery = """
+//             SELECT COUNT(*) FROM recipes r
+//             JOIN recipe_search_index idx ON r.recipe_id = idx.recipe_id
+//             WHERE MATCH(idx.search_text) AGAINST(:keyword IN NATURAL LANGUAGE MODE)
+//                OR r.title LIKE %:keyword%
+//             """, nativeQuery = true)
+//     Page<Recipe> searchNaturalLanguage(@Param("keyword") String keyword, Pageable pageable);
+
+@Query(value = """
+            SELECT r.*, 
+                ( (MATCH(idx.search_text) AGAINST(:keyword IN NATURAL LANGUAGE MODE)) + 
                   (CASE WHEN r.title LIKE %:keyword% THEN 10 ELSE 0 END) ) as relevance
             FROM recipes r
             JOIN recipe_search_index idx ON r.recipe_id = idx.recipe_id
-            WHERE MATCH(idx.search_text) AGAINST(:keyword IN NATURAL LANGUAGE MODE)
-               OR r.title LIKE %:keyword%
+            WHERE r.scope = 'PUBLIC' 
+              AND r.status = 'APPROVED'
+              AND (MATCH(idx.search_text) AGAINST(:keyword IN NATURAL LANGUAGE MODE) 
+                   OR r.title LIKE %:keyword%)
             ORDER BY relevance DESC
             """, countQuery = """
             SELECT COUNT(*) FROM recipes r
             JOIN recipe_search_index idx ON r.recipe_id = idx.recipe_id
-            WHERE MATCH(idx.search_text) AGAINST(:keyword IN NATURAL LANGUAGE MODE)
-               OR r.title LIKE %:keyword%
+            WHERE r.scope = 'PUBLIC' 
+              AND r.status = 'APPROVED'
+              AND (MATCH(idx.search_text) AGAINST(:keyword IN NATURAL LANGUAGE MODE) 
+                   OR r.title LIKE %:keyword%)
             """, nativeQuery = true)
     Page<Recipe> searchNaturalLanguage(@Param("keyword") String keyword, Pageable pageable);
 }

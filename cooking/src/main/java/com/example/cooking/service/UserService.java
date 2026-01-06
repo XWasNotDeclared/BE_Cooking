@@ -7,11 +7,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.cooking.common.ApiResponse;
 import com.example.cooking.common.PageDTO;
 import com.example.cooking.common.enums.FileType;
 import com.example.cooking.common.enums.UserStatus;
@@ -27,6 +29,7 @@ import com.example.cooking.model.RoleEntity;
 import com.example.cooking.model.User;
 import com.example.cooking.repository.RoleRepository;
 import com.example.cooking.repository.UserRepository;
+import com.example.cooking.security.JwtService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,7 +42,7 @@ public class UserService {
     private final UploadFileService uploadFileService;
     private final RoleRepository roleRepository;
     private final SellerWalletService sellerWalletService;
-
+    private final JwtService jwtService;
     @Transactional
     public Long addUser(RegisterRequest registerRequest) {
         if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
@@ -120,13 +123,21 @@ public class UserService {
         return savedUser.getId();
     }
     @Transactional
-    public void updatePassword(String token, String email, ResetPassRequest resetPassRequest) {
+    public void updatePassword(String token,ResetPassRequest resetPassRequest) {
+        String email =resetPassRequest.getEmail();
+        //Tìm user trong DB
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException("Token không hợp lệ hoặc email không tồn tại"));
+
+        if (!jwtService.validateResetToken(token,email,user.getPassword())) {
+            throw new CustomException("Token không hợp lệ hoặc email không tồn tại");
+        }
+
+
         if (!resetPassRequest.getPassword().equals(resetPassRequest.getConfirmPassword())) {
             throw new CustomException("Mat khau xac nhan sai !");
         }
-        //Tìm user trong DB
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException("User không tồn tại"));
+
 
         //Cập nhật mật khẩu mới (đã mã hóa)
         user.setPassword(passwordEncoder.encode(resetPassRequest.getPassword()));
