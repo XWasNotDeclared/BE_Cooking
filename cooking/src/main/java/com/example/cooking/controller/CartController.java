@@ -1,6 +1,7 @@
 package com.example.cooking.controller;
 
 import com.example.cooking.dto.request.AddCartItemRequest;
+import com.example.cooking.dto.request.UpdateCartItemRequest;
 import com.example.cooking.common.ApiResponse;
 import com.example.cooking.dto.CartDto;
 import com.example.cooking.security.MyUserDetails;
@@ -61,6 +62,14 @@ public class CartController {
             @AuthenticationPrincipal MyUserDetails myUserDetails,
             @PathVariable Long cartId) {
         return  ApiResponse.ok(cartService.getCartById(myUserDetails, cartId));
+    }
+
+    @PutMapping("/update-item/{cartId}")
+    public ResponseEntity<ApiResponse<CartDto>> updateItemInCart(
+            @AuthenticationPrincipal MyUserDetails myUserDetails,
+            @PathVariable Long cartId,
+            @RequestBody UpdateCartItemRequest updateCartItemRequest) {
+        return  ApiResponse.ok(cartService.updateItemQuantity(myUserDetails, cartId, updateCartItemRequest));
     }
 
 }
