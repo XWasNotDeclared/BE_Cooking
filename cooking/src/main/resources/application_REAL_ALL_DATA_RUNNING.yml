@@ -21,8 +21,6 @@ server:
 spring:
   application:
     name: cooking
-  config:
-    import: "optional:file:.env[.properties]"
   servlet:
     multipart:
       max-file-size: 50MB
@@ -32,8 +30,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: recipeappspring@gmail.com
+    password: tugmhkseleycubdk
     properties:
       mail:
         smtp:
@@ -87,13 +85,14 @@ ai:
 
 app:
   jwt:
-    secret: ${JWT_SECRET}    expiration: 3600000000 #  in milliseconds
+    secret: thisismyscretkeyformyownmuahahahahahahahahahahahahahahaha
+    expiration: 3600000000 #  in milliseconds
     refresh-expiration: 360000000000
     header: Authorization
     prefix: Bearer
   admin:
-    username: ${ADMIN_USER:admin}
-    password: ${ADMIN_PASS:admin12345}
+    username: admin
+    password: admin12345
     email: admine
     dob: 1990-01-01
     roles: 
@@ -125,8 +124,8 @@ pinecone:
 vnpay:
   # tmn-code: NJJ0R8FS  # Đăng ký tại http://sandbox.vnpayment.vn/devreg/
   # hash-secret: BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW  # Secret key từ VNPAY
-  tmn-code: ${VNPAY_TMN_CODE}
-  hash-secret: ${VNPAY_HASH_SECRET}
+  tmn-code: X1X7JTMK  # Đăng ký tại http://sandbox.vnpayment.vn/devreg/
+  hash-secret: DHUZODON768EZLRV8FJF5ZKMUSQMLT72  # Secret key từ VNPAY
   pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
   return-url: http://localhost:8080/api/payment/vnpay/return
   # return-url:  https://venular-unselfconscious-jalisa.ngrok-free.dev/api/payment/vnpay/return
