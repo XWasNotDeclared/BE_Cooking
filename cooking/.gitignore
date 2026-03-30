@@ -3,7 +3,6 @@
 .env.development.local
 .env.production.local
 
-application_REAL_ALL_DATA_RUNNING.yaml
 
 HELP.md
 target/
