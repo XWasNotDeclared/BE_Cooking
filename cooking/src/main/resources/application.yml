@@ -1,20 +1,6 @@
-# server:
-#   port: 8081
-#   servlet:
-#     context-path: /abc
-# server:
-#   tomcat:
-#     # Tham số này giải quyết trực tiếp lỗi FileCountLimitExceededException
-#     max-part-count: 200
-#     # Tham số này giúp tránh lỗi header của các part quá dài
-#     max-part-header-size: 8192
-#     max-parameter-count: 2000
-
 server:
   tomcat:
-    # Tham số này giải quyết trực tiếp lỗi FileCountLimitExceededException
     max-part-count: 600
-    # Tham số này giúp tránh lỗi header của các part quá dài
     max-part-header-size: 24576
     max-parameter-count: 6000
 
@@ -23,11 +9,12 @@ spring:
     name: cooking
   config:
     import: "optional:file:.env[.properties]"
+    # import: "optional:file:.env"
   servlet:
     multipart:
       max-file-size: 50MB
       max-request-size: 500MB
-      # Thêm dòng này để Spring xử lý số lượng file/part lớn
+      # xử lý số lượng file/part lớn
       file-size-threshold: 2KB
   mail:
     host: smtp.gmail.com
@@ -47,25 +34,14 @@ spring:
           jdbc:
             # initialize-schema: always
             initialize-schema: never
-            # schema: classpath:org/springframework/ai/chat/memory/repository/jdbc/schema.sql
     model:
      chat: openai #groq và chatGPT
-    #  chat: google-genai # gemini (Đang lỗi)
     openai:
       api-key: ${GROQ_API_KEY}
       base-url: https://api.groq.com/openai
       chat:
         options:
           model: openai/gpt-oss-120b
-
-          # model: meta-llama/llama-4-maverick-17b-128e-instruct
-    # google:
-    #   genai:
-    #     api-key: ${GOOGLE_GENAI_API_KEY}
-    #     project-id: gen-lang-client-0239165191
-    #     chat:
-    #       options:
-    #         model: gemini-2.0-flash
   datasource:
     url: jdbc:mysql://localhost:3306/cooking_db
     username: root
@@ -78,7 +54,7 @@ spring:
       # ddl-auto: create
     show-sql: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
-    open-in-view: true #Test thoi ti tat di nhe mac dinh la true
+    open-in-view: true #mac dinh true
 
 ai:
   modules:
@@ -87,7 +63,8 @@ ai:
 
 app:
   jwt:
-    secret: ${JWT_SECRET}    expiration: 3600000000 #  in milliseconds
+    secret: ${JWT_SECRET}    
+    expiration: 3600000000 #  in milliseconds
     refresh-expiration: 360000000000
     header: Authorization
     prefix: Bearer
@@ -118,18 +95,15 @@ pinecone:
   api-key: ${PINECONE_API_KEY}
   host: recipe001-jis24m5.svc.aped-4627-b74a.pinecone.io # Ví dụ: my-index-1234.svc.pinecone.io <-- THAY THẾ
   PINECONE_ENVIRONMENT: us-east-1
-  index-name: recipe001 # Tên Index bạn muốn dùng <-- THAY THẾ
+  index-name: recipe001 # Tên Index bạn muốn dùng
   namespace: example-namespace # Namespace mặc định
 
 # VNPay Configuration (Sandbox)
 vnpay:
-  # tmn-code: NJJ0R8FS  # Đăng ký tại http://sandbox.vnpayment.vn/devreg/
-  # hash-secret: BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW  # Secret key từ VNPAY
   tmn-code: ${VNPAY_TMN_CODE}
   hash-secret: ${VNPAY_HASH_SECRET}
   pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
   return-url: http://localhost:8080/api/payment/vnpay/return
-  # return-url:  https://venular-unselfconscious-jalisa.ngrok-free.dev/api/payment/vnpay/return
   ipn-url: https://venular-unselfconscious-jalisa.ngrok-free.dev/api/payment/vnpay/ipn  # Phải là URL public có SSL khi production
   api-transaction-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
   version: 2.1.0
